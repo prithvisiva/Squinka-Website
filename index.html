@@ -1,0 +1,160 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Squinka Game</title>
+
+    <style>
+        body {
+            margin: 0;
+            background-color: lightblue;
+            font-family: Arial;
+            text-align: center;
+        }
+
+        #game {
+            width: 600px;
+            height: 400px;
+            background-color: white;
+            border: 5px solid black;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* BIGGER SQUINKA */
+        #squinka {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            left: 50px;
+            top: 50px;
+            font-size: 65px;
+            line-height: 70px;
+        }
+
+        /* FISH */
+        #fish {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            left: 400px;
+            top: 250px;
+            font-size: 35px;
+            line-height: 40px;
+        }
+
+        #score {
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🐱 Squinka's Fish Game 🐟</h1>
+
+    <div id="score">Score: 0</div>
+
+    <div id="game">
+        <div id="squinka">🐱</div>
+        <div id="fish">🐟</div>
+    </div>
+
+    <script>
+        let squinka = document.getElementById("squinka");
+        let fish = document.getElementById("fish");
+        let scoreText = document.getElementById("score");
+
+        let x = 50;
+        let y = 50;
+        let score = 0;
+
+        let fishX = 400;
+        let fishY = 250;
+
+        let keys = {};
+
+        document.addEventListener("keydown", function(event) {
+            keys[event.key] = true;
+        });
+
+        document.addEventListener("keyup", function(event) {
+            keys[event.key] = false;
+        });
+
+
+        function checkFish() {
+
+            // Squinka's center
+            let squinkaCenterX = x + 35;
+            let squinkaCenterY = y + 35;
+
+            // Fish's center
+            let fishCenterX = fishX + 20;
+            let fishCenterY = fishY + 20;
+
+            let distanceX = Math.abs(squinkaCenterX - fishCenterX);
+            let distanceY = Math.abs(squinkaCenterY - fishCenterY);
+
+            // Small hitbox
+            if (distanceX < 30 && distanceY < 30) {
+
+                score = score + 1;
+                scoreText.textContent = "Score: " + score;
+
+                fishX = Math.floor(Math.random() * 550);
+                fishY = Math.floor(Math.random() * 350);
+
+                fish.style.left = fishX + "px";
+                fish.style.top = fishY + "px";
+            }
+        }
+
+
+        function moveSquinka() {
+
+            let speed = 4;
+
+            if (keys["ArrowRight"]) {
+                x += speed;
+            }
+
+            if (keys["ArrowLeft"]) {
+                x -= speed;
+            }
+
+            if (keys["ArrowUp"]) {
+                y -= speed;
+            }
+
+            if (keys["ArrowDown"]) {
+                y += speed;
+            }
+
+            // Keep Squinka inside the game
+            if (x < 0) x = 0;
+            if (x > 530) x = 530;
+
+            if (y < 0) y = 0;
+            if (y > 330) y = 330;
+
+            squinka.style.left = x + "px";
+            squinka.style.top = y + "px";
+
+            checkFish();
+
+            requestAnimationFrame(moveSquinka);
+        }
+
+        moveSquinka();
+    </script>
+
+</body>
+</html>
+
+<button style="background-color: blue; color: white;" onclick="window.location.href='Squinka Website.html';">
+    Back to Main Page
+</button>
+
