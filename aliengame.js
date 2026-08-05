@@ -1,17 +1,18 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let score = 0;
+let score;
 let highScore = localStorage.getItem("highScore") || 0;
-let lives = 3;
-let gameOver = false;
+let lives;
+let gameOver;
 
-let boss = null;
-let bossHealth = 0;
-let nextBossScore = 15;
+let boss;
+let bossHealth;
+let nextBossScore;
 
-let bossBullets = [];
-let bossDirection = 1;
+let bullets;
+let aliens;
+let bossBullets;
 
 let keys = {};
 
@@ -23,23 +24,59 @@ let squinka = {
     speed: 7
 };
 
-let bullets = [];
-let aliens = [];
+let bossDirection = 1;
+
+let restartButton = document.getElementById("restartButton");
+
+restartButton.style.display = "none";
+
+restartButton.onclick = restartGame;
+
+
+
+function restartGame(){
+
+    score = 0;
+    lives = 3;
+    gameOver = false;
+
+    boss = null;
+    bossHealth = 0;
+    nextBossScore = 15;
+
+    bullets = [];
+    aliens = [];
+    bossBullets = [];
+
+    squinka.x = 270;
+    squinka.y = 350;
+
+    restartButton.style.display = "none";
+
+}
+
+
+restartGame();
+
 
 
 // Controls
+
 document.addEventListener("keydown", function(e){
 
     keys[e.key] = true;
 
+
     if(e.key === " " && !gameOver){
 
         bullets.push({
+
             x: squinka.x + 15,
             y: squinka.y,
             width:20,
             height:20,
             speed:10
+
         });
 
     }
@@ -48,13 +85,15 @@ document.addEventListener("keydown", function(e){
 
 
 document.addEventListener("keyup", function(e){
+
     keys[e.key] = false;
+
 });
 
 
 
 
-// Spawn aliens
+
 function spawnAlien(){
 
     if(!boss){
@@ -74,10 +113,13 @@ function spawnAlien(){
 }
 
 
+
 setInterval(function(){
 
     if(!gameOver){
+
         spawnAlien();
+
     }
 
 },900);
@@ -86,10 +128,9 @@ setInterval(function(){
 
 
 
-// Boss
 function spawnBoss(){
 
-    boss={
+    boss = {
 
         x:220,
         y:40,
@@ -99,22 +140,22 @@ function spawnBoss(){
 
     };
 
-    bossHealth=10;
+    bossHealth = 10;
 
 }
 
 
 
 
-// Boss shooting
+
 setInterval(function(){
 
     if(boss && !gameOver){
 
         bossBullets.push({
 
-            x: boss.x + 70,
-            y: boss.y + 80,
+            x:boss.x+70,
+            y:boss.y+80,
             width:20,
             height:20,
             speed:5
@@ -134,9 +175,9 @@ function loseLife(){
 
     lives--;
 
-    if(lives<=0){
+    if(lives <= 0){
 
-        gameOver=true;
+        gameOver = true;
 
     }
 
@@ -146,11 +187,12 @@ function loseLife(){
 
 
 
+
 function saveScore(){
 
-    if(score>highScore){
+    if(score > highScore){
 
-        highScore=score;
+        highScore = score;
 
         localStorage.setItem(
             "highScore",
@@ -166,40 +208,43 @@ function saveScore(){
 
 
 
-
 function update(){
 
-    if(gameOver) return;
+    if(gameOver){
+
+        restartButton.style.display = "inline-block";
+
+        return;
+
+    }
 
 
 
-    // Spawn boss
-    if(score>=nextBossScore && boss===null){
+    if(score >= nextBossScore && boss === null){
 
         spawnBoss();
 
-        nextBossScore+=15;
+        nextBossScore += 15;
 
     }
 
 
 
 
+    // Movement
 
-    // Player movement
-    if(keys["ArrowLeft"] && squinka.x>0){
+    if(keys["ArrowLeft"] && squinka.x > 0){
 
-        squinka.x-=squinka.speed;
-
-    }
-
-
-    if(keys["ArrowRight"] && squinka.x<canvas.width-squinka.width){
-
-        squinka.x+=squinka.speed;
+        squinka.x -= squinka.speed;
 
     }
 
+
+    if(keys["ArrowRight"] && squinka.x < canvas.width - squinka.width){
+
+        squinka.x += squinka.speed;
+
+    }
 
 
 
@@ -209,9 +254,10 @@ function update(){
 
     bullets.forEach((b,i)=>{
 
-        b.y-=b.speed;
+        b.y -= b.speed;
 
-        if(b.y<0){
+
+        if(b.y < 0){
 
             bullets.splice(i,1);
 
@@ -230,11 +276,11 @@ function update(){
     aliens.forEach((alien,ai)=>{
 
 
-        alien.y+=alien.speed;
+        alien.y += alien.speed;
 
 
 
-        if(alien.y+alien.height>=canvas.height){
+        if(alien.y + alien.height >= canvas.height){
 
             aliens.splice(ai,1);
 
@@ -248,10 +294,10 @@ function update(){
 
         if(
 
-            alien.x<squinka.x+squinka.width &&
-            alien.x+alien.width>squinka.x &&
-            alien.y<squinka.y+squinka.height &&
-            alien.y+alien.height>squinka.y
+            alien.x < squinka.x+squinka.width &&
+            alien.x+alien.width > squinka.x &&
+            alien.y < squinka.y+squinka.height &&
+            alien.y+alien.height > squinka.y
 
         ){
 
@@ -271,10 +317,10 @@ function update(){
 
             if(
 
-                bullet.x<alien.x+alien.width &&
-                bullet.x+bullet.width>alien.x &&
-                bullet.y<alien.y+alien.height &&
-                bullet.y+bullet.height>alien.y
+                bullet.x < alien.x+alien.width &&
+                bullet.x+bullet.width > alien.x &&
+                bullet.y < alien.y+alien.height &&
+                bullet.y+bullet.height > alien.y
 
             ){
 
@@ -300,15 +346,15 @@ function update(){
 
 
 
-
-    // Boss movement
+    // Boss
 
     if(boss){
+
 
         boss.x += boss.speed * bossDirection;
 
 
-        if(boss.x<=0 || boss.x+boss.width>=canvas.width){
+        if(boss.x <= 0 || boss.x+boss.width >= canvas.width){
 
             bossDirection *= -1;
 
@@ -316,21 +362,15 @@ function update(){
 
 
 
-
-
-
-
-        // Player hits boss
-
         bullets.forEach((bullet,bi)=>{
 
 
             if(
 
-                bullet.x<boss.x+boss.width &&
-                bullet.x+bullet.width>boss.x &&
-                bullet.y<boss.y+boss.height &&
-                bullet.y+bullet.height>boss.y
+                bullet.x < boss.x+boss.width &&
+                bullet.x+bullet.width > boss.x &&
+                bullet.y < boss.y+boss.height &&
+                bullet.y+bullet.height > boss.y
 
             ){
 
@@ -339,11 +379,11 @@ function update(){
                 bossHealth--;
 
 
-                if(bossHealth<=0){
+                if(bossHealth <= 0){
 
                     boss=null;
 
-                    score+=10;
+                    score += 10;
 
                     saveScore();
 
@@ -351,9 +391,7 @@ function update(){
 
             }
 
-
         });
-
 
     }
 
@@ -363,16 +401,15 @@ function update(){
 
 
 
-    // Boss bullets
+    // Boss attacks
 
-    bossBullets.forEach((bullet,i)=>{
-
-
-        bullet.y+=bullet.speed;
+    bossBullets.forEach((b,i)=>{
 
 
+        b.y += b.speed;
 
-        if(bullet.y>canvas.height){
+
+        if(b.y > canvas.height){
 
             bossBullets.splice(i,1);
 
@@ -381,16 +418,12 @@ function update(){
 
 
 
-
-
-        // Hit Squinka
-
         if(
 
-            bullet.x<squinka.x+squinka.width &&
-            bullet.x+bullet.width>squinka.x &&
-            bullet.y<squinka.y+squinka.height &&
-            bullet.y+bullet.height>squinka.y
+            b.x < squinka.x+squinka.width &&
+            b.x+b.width > squinka.x &&
+            b.y < squinka.y+squinka.height &&
+            b.y+b.height > squinka.y
 
         ){
 
@@ -401,10 +434,7 @@ function update(){
         }
 
 
-
     });
-
-
 
 
 
@@ -415,7 +445,8 @@ function update(){
     "Score: "+score+
     " | High Score: "+highScore+
     " | Lives: "+"❤️".repeat(lives)+
-    (boss ? " | Boss HP: "+bossHealth:"");
+    (boss ? " | Boss HP: "+bossHealth : "");
+
 
 }
 
@@ -431,8 +462,6 @@ function draw(){
 
 
 
-    // Squinka
-
     ctx.font="50px Arial";
 
     ctx.fillText(
@@ -443,9 +472,6 @@ function draw(){
 
 
 
-
-
-    // Player fireballs
 
     ctx.font="25px Arial";
 
@@ -462,9 +488,6 @@ function draw(){
 
 
 
-
-
-    // Aliens
 
     ctx.font="45px Arial";
 
@@ -483,8 +506,6 @@ function draw(){
 
 
 
-    // Boss
-
     if(boss){
 
         ctx.font="90px Arial";
@@ -502,8 +523,6 @@ function draw(){
 
 
 
-    // Boss attacks
-
     bossBullets.forEach(b=>{
 
         ctx.font="30px Arial";
@@ -515,7 +534,6 @@ function draw(){
         );
 
     });
-
 
 
 
@@ -552,7 +570,6 @@ function gameLoop(){
     requestAnimationFrame(gameLoop);
 
 }
-
 
 
 gameLoop();
