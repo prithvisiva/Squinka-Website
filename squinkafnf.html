@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Squinka Rhythm Battle</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #101020;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    overflow: hidden;
+}
+
+h1 {
+    margin: 10px 0 2px;
+    font-size: 30px;
+}
+
+#subtitle {
+    color: #aaa;
+    margin-bottom: 8px;
+}
+
+#game {
+    position: relative;
+    width: 900px;
+    max-width: 96vw;
+    height: 650px;
+    margin: auto;
+    background: linear-gradient(#29295c, #111126);
+    border: 4px solid white;
+    overflow: hidden;
+}
+
+/* BACK BUTTON */
+
+#backButton {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    padding: 12px 18px;
+    font-size: 16px;
+    font-weight: bold;
+    background: #3b82f6;
+    color: white;
+    border: 2px solid white;
+    border-radius: 10px;
+    cursor: pointer;
+    z-index: 9999;
+}
+
+#backButton:hover {
+    transform: scale(1.05);
+    background: #2563eb;
+}
+
+/* CHARACTERS */
+
+#squinka {
+    position: absolute;
+    top: 40px;
+    left: 150px;
+    width: 190px;
+    height: 190px;
+    background: #f5a623;
+    border-radius: 45% 45% 50% 50%;
+    border: 5px solid #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 100px;
+    z-index: 2;
+}
+
+#player {
+    position: absolute;
+    top: 40px;
+    right: 150px;
+    width: 190px;
+    height: 190px;
+    background: #3b82f6;
+    border-radius: 50%;
+    border: 5px solid #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 100px;
+    z-index: 2;
+}
+
+.character-name {
+    position: absolute;
+    top: 240px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+#squinkaName {
+    left: 205px;
+}
+
+#playerName {
+    right: 215px;
+}
+
+/* HEALTH */
+
+#healthBox {
+    position: absolute;
+    top: 278px;
+    left: 150px;
+    width: 600px;
+    height: 30px;
+    background: #333;
+    border: 3px solid white;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+#health {
+    height: 100%;
+    width: 50%;
+    background: #45e878;
+    transition: width 0.15s;
+}
+
+/* TIMER */
+
+#timer {
+    position: absolute;
+    top: 315px;
+    left: 0;
+    width: 100%;
+    font-size: 22px;
+    font-weight: bold;
+    color: #7dd3fc;
+}
+
+#score {
+    position: absolute;
+    top: 345px;
+    width: 100%;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+#combo {
+    position: absolute;
+    top: 375px;
+    width: 100%;
+    font-size: 23px;
+    color: #ffe600;
+    font-weight: bold;
+}
+
+#message {
+    position: absolute;
+    top: 405px;
+    width: 100%;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* ARROWS */
+
+#arrowArea {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 480px;
+    height: 200px;
+}
+
+.arrow {
+    position: absolute;
+    width: 85px;
+    height: 85px;
+    border: 4px solid white;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 50px;
+    font-weight: bold;
+    background: #222;
+}
+
+#leftArrow {
+    left: 0;
+    bottom: 0;
+}
+
+#downArrow {
+    left: 130px;
+    bottom: 0;
+}
+
+#upArrow {
+    left: 260px;
+    bottom: 0;
+}
+
+#rightArrow {
+    left: 390px;
+    bottom: 0;
+}
+
+.pressed {
+    transform: scale(0.9);
+    filter: brightness(1.7);
+}
+
+/* FALLING NOTES */
+
+.note {
+    position: absolute;
+    width: 65px;
+    height: 65px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 38px;
+    font-weight: bold;
+    z-index: 5;
+}
+
+.leftNote {
+    background: #ef4444;
+}
+
+.downNote {
+    background: #22c55e;
+}
+
+.upNote {
+    background: #3b82f6;
+}
+
+.rightNote {
+    background: #eab308;
+}
+
+/* SCREENS */
+
+#startScreen,
+#endScreen {
+    position: absolute;
+    inset: 0;
+    background: rgba(5,5,20,0.96);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#endScreen {
+    display: none;
+}
+
+#startScreen h2,
+#endScreen h2 {
+    font-size: 40px;
+    margin: 10px;
+}
+
+#levelButtons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 250px;
+}
+
+.levelButton {
+    font-size: 20px;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: white;
+}
+
+.easy {
+    background: #22c55e;
+}
+
+.normal {
+    background: #eab308;
+}
+
+.hard {
+    background: #f97316;
+}
+
+.insane {
+    background: #ef4444;
+}
+
+button:hover {
+    transform: scale(1.06);
+}
+
+#instructions {
+    color: #ccc;
+    margin-bottom: 15px;
+}
+
+#levelInfo {
+    margin-top: 8px;
+    color: #aaa;
+    font-size: 14px;
+}
+
+#currentLevel {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    font-size: 15px;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<!-- GO BACK TO MAIN PAGE -->
+
+<button id="backButton"
+onclick="window.location.href='index.html';">
+    ⬅️ Go Back to Main Page
+</button>
+
+<h1>🎤 SQUINKA RHYTHM BATTLE 🎤</h1>
+
+<div id="subtitle">
+    Battle Squinka with your rhythm!
+</div>
+
+<div id="game">
+
+    <div id="currentLevel"></div>
+
+    <div id="squinka">🐱</div>
+
+    <div id="player">😎</div>
+
+    <div id="squinkaName" class="character-name">
+        SQUINKA
+    </div>
+
+    <div id="playerName" class="character-name">
+        YOU
+    </div>
+
+    <div id="healthBox">
+        <div id="health"></div>
+    </div>
+
+    <div id="timer">
+        ⏱️ Time Left: 0.0s
+    </div>
+
+    <div id="score">
+        Score: 0 | Misses: 0
+    </div>
+
+    <div id="combo">
+        Combo: 0
+    </div>
+
+    <div id="message">
+        Choose a level!
+    </div>
+
+    <div id="arrowArea">
+
+        <div id="leftArrow" class="arrow">
+            ←
+        </div>
+
+        <div id="downArrow" class="arrow">
+            ↓
+        </div>
+
+        <div id="upArrow" class="arrow">
+            ↑
+        </div>
+
+        <div id="rightArrow" class="arrow">
+            →
+        </div>
+
+    </div>
+
+    <!-- START SCREEN -->
+
+    <div id="startScreen">
+
+        <h2>🐱 SQUINKA BATTLE!</h2>
+
+        <p id="instructions">
+            Choose your difficulty!
+        </p>
+
+        <div id="levelButtons">
+
+            <button
+                class="levelButton easy"
+                onclick="startGame('easy')">
+                🟢 EASY
+            </button>
+
+            <button
+                class="levelButton normal"
+                onclick="startGame('normal')">
+                🟡 NORMAL
+            </button>
+
+            <button
+                class="levelButton hard"
+                onclick="startGame('hard')">
+                🟠 HARD
+            </button>
+
+            <button
+                class="levelButton insane"
+                onclick="startGame('insane')">
+                🔴 INSANE
+            </button>
+
+        </div>
+
+        <div id="levelInfo">
+            ⬅️ Left &nbsp;
+            ⬇️ Down &nbsp;
+            ⬆️ Up &nbsp;
+            ➡️ Right
+        </div>
+
+    </div>
+
+    <!-- END SCREEN -->
+
+    <div id="endScreen">
+
+        <h2 id="endTitle">
+            YOU WIN!
+        </h2>
+
+        <p id="finalScore">
+            Score: 0
+        </p>
+
+        <button onclick="location.reload()">
+            🔄 PLAY AGAIN
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+let score = 0;
+let misses = 0;
+let combo = 0;
+let health = 50;
+
+let playing = false;
+
+let songTime = 0;
+let lastTime = 0;
+
+let beatTimer = 0;
+let patternIndex = 0;
+let musicStep = 0;
+
+let notes = [];
+
+let audioContext = null;
+
+let level = "easy";
+
+
+/* =========================================================
+   LEVELS
+========================================================= */
+
+const levels = {
+
+    easy: {
+
+        name: "🟢 EASY",
+
+        beat: 650,
+
+        speed: 3.0,
+
+        length: 35000,
+
+        pattern: [
+            "left",
+            "down",
+            "up",
+            "right",
+            "left",
+            "down",
+            "up",
+            "right"
+        ],
+
+        melody: [
+            261.63,
+            293.66,
+            329.63,
+            392.00,
+            329.63,
+            293.66,
+            261.63,
+            293.66
+        ],
+
+        bass: [
+            130.81,
+            130.81,
+            146.83,
+            146.83
+        ]
+    },
+
+    normal: {
+
+        name: "🟡 NORMAL",
+
+        beat: 480,
+
+        speed: 3.8,
+
+        length: 40000,
+
+        pattern: [
+            "left",
+            "up",
+            "down",
+            "right",
+            "right",
+            "down",
+            "left",
+            "up",
+            "left",
+            "right",
+            "up",
+            "down"
+        ],
+
+        melody: [
+            329.63,
+            392.00,
+            440.00,
+            392.00,
+            329.63,
+            293.66,
+            329.63,
+            493.88,
+            440.00,
+            392.00,
+            329.63,
+            392.00
+        ],
+
+        bass: [
+            110.00,
+            110.00,
+            130.81,
+            130.81,
+            146.83,
+            146.83
+        ]
+    },
+
+    hard: {
+
+        name: "🟠 HARD",
+
+        beat: 360,
+
+        speed: 4.8,
+
+        length: 45000,
+
+        pattern: [
+            "left",
+            "down",
+            "left",
+            "up",
+            "right",
+            "down",
+            "up",
+            "right",
+            "left",
+            "right",
+            "down",
+            "up",
+            "up",
+            "left",
+            "down",
+            "right"
+        ],
+
+        melody: [
+            392.00,
+            440.00,
+            493.88,
+            523.25,
+            493.88,
+            440.00,
+            392.00,
+            349.23,
+            392.00,
+            493.88,
+            523.25,
+            587.33,
+            523.25,
+            493.88,
+            440.00,
+            392.00
+        ],
+
+        bass: [
+            98.00,
+            110.00,
+            123.47,
+            130.81,
+            146.83,
+            130.81
+        ]
+    },
+
+    insane: {
+
+        name: "🔴 INSANE",
+
+        beat: 250,
+
+        speed: 6.2,
+
+        length: 50000,
+
+        pattern: [
+            "left",
+            "down",
+            "up",
+            "right",
+            "left",
+            "right",
+            "down",
+            "up",
+            "up",
+            "down",
+            "left",
+            "right",
+            "right",
+            "left",
+            "up",
+            "down",
+            "left",
+            "up",
+            "right",
+            "down",
+            "right",
+            "right",
+            "up",
+            "left",
+            "down",
+            "up",
+            "down",
+            "right"
+        ],
+
+        melody: [
+            523.25,
+            659.25,
+            783.99,
+            659.25,
+            587.33,
+            698.46,
+            880.00,
+            698.46,
+            523.25,
+            659.25,
+            783.99,
+            987.77,
+            880.00,
+            783.99,
+            659.25,
+            587.33,
+            783.99,
+            880.00,
+            987.77,
+            1046.50
+        ],
+
+        bass: [
+            130.81,
+            146.83,
+            164.81,
+            174.61,
+            196.00,
+            174.61,
+            164.81,
+            146.83
+        ]
+    }
+};
+
+
+/* =========================================================
+   START GAME
+========================================================= */
+
+function startGame(selectedLevel) {
+
+    level = selectedLevel;
+
+    score = 0;
+    misses = 0;
+    combo = 0;
+    health = 50;
+
+    songTime = 0;
+    lastTime = performance.now();
+
+    beatTimer = 0;
+    patternIndex = 0;
+    musicStep = 0;
+
+    notes = [];
+
+    playing = true;
+
+    let current = levels[level];
+
+    document.getElementById(
+        "startScreen"
+    ).style.display = "none";
+
+    document.getElementById(
+        "currentLevel"
+    ).textContent = current.name;
+
+    updateDisplay();
+
+    updateTimer(current.length);
+
+    try {
+
+        audioContext =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+        audioContext.resume();
+
+    } catch(error) {
+
+        audioContext = null;
+
+    }
+
+    message("GET READY! 🎵");
+
+    requestAnimationFrame(gameLoop);
+}
+
+
+/* =========================================================
+   GAME LOOP
+========================================================= */
+
+function gameLoop(time) {
+
+    if (!playing) return;
+
+    let delta = time - lastTime;
+
+    lastTime = time;
+
+    songTime += delta;
+
+    beatTimer += delta;
+
+    let current = levels[level];
+
+    let timeLeft =
+        Math.max(
+            0,
+            current.length - songTime
+        );
+
+    updateTimer(timeLeft);
+
+    if (beatTimer >= current.beat) {
+
+        beatTimer = 0;
+
+        createNote();
+
+        playMusicBeat();
+    }
+
+    moveNotes(delta);
+
+    if (songTime >= current.length) {
+
+        endGame(true);
+
+        return;
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+
+/* =========================================================
+   TIMER
+========================================================= */
+
+function updateTimer(milliseconds) {
+
+    let seconds =
+        Math.max(
+            0,
+            milliseconds / 1000
+        );
+
+    document.getElementById(
+        "timer"
+    ).textContent =
+        "⏱️ Time Left: " +
+        seconds.toFixed(1) +
+        "s";
+}
+
+
+/* =========================================================
+   CREATE NOTE
+========================================================= */
+
+function createNote() {
+
+    let current = levels[level];
+
+    let direction =
+        current.pattern[
+            patternIndex
+        ];
+
+    patternIndex++;
+
+    if (
+        patternIndex >=
+        current.pattern.length
+    ) {
+
+        patternIndex = 0;
+    }
+
+    let note =
+        document.createElement("div");
+
+    note.classList.add("note");
+
+    note.dataset.direction =
+        direction;
+
+    note.textContent =
+        getArrow(direction);
+
+    if (direction === "left") {
+
+        note.classList.add("leftNote");
+
+        note.style.left = "10px";
+    }
+
+    if (direction === "down") {
+
+        note.classList.add("downNote");
+
+        note.style.left = "140px";
+    }
+
+    if (direction === "up") {
+
+        note.classList.add("upNote");
+
+        note.style.left = "270px";
+    }
+
+    if (direction === "right") {
+
+        note.classList.add("rightNote");
+
+        note.style.left = "400px";
+    }
+
+    note.style.top = "-80px";
+
+    document.getElementById(
+        "arrowArea"
+    ).appendChild(note);
+
+    notes.push({
+
+        element: note,
+
+        direction: direction,
+
+        y: -80
+
+    });
+}
+
+
+/* =========================================================
+   GET ARROW
+========================================================= */
+
+function getArrow(direction) {
+
+    if (direction === "left")
+        return "←";
+
+    if (direction === "down")
+        return "↓";
+
+    if (direction === "up")
+        return "↑";
+
+    if (direction === "right")
+        return "→";
+}
+
+
+/* =========================================================
+   MOVE NOTES
+========================================================= */
+
+function moveNotes(delta) {
+
+    let current = levels[level];
+
+    for (
+        let i = notes.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        let note = notes[i];
+
+        note.y +=
+            current.speed *
+            (delta / 16);
+
+        note.element.style.top =
+            note.y + "px";
+
+        if (note.y > 245) {
+
+            missNote(i);
+        }
+    }
+}
+
+
+/* =========================================================
+   ARROW KEYS
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (!playing) return;
+
+        let direction = null;
+
+        if (event.key === "ArrowLeft") {
+
+            direction = "left";
+
+            pressArrow("leftArrow");
+
+        }
+
+        else if (event.key === "ArrowDown") {
+
+            direction = "down";
+
+            pressArrow("downArrow");
+
+        }
+
+        else if (event.key === "ArrowUp") {
+
+            direction = "up";
+
+            pressArrow("upArrow");
+
+        }
+
+        else if (event.key === "ArrowRight") {
+
+            direction = "right";
+
+            pressArrow("rightArrow");
+        }
+
+        if (direction !== null) {
+
+            event.preventDefault();
+
+            hitNote(direction);
+        }
+
+    },
+    { passive: false }
+);
+
+
+/* =========================================================
+   ARROW PRESS
+========================================================= */
+
+function pressArrow(id) {
+
+    let arrow =
+        document.getElementById(id);
+
+    arrow.classList.add("pressed");
+
+    setTimeout(
+        function() {
+
+            arrow.classList.remove("pressed");
+
+        },
+        100
+    );
+}
+
+
+/* =========================================================
+   HIT NOTE
+========================================================= */
+
+function hitNote(direction) {
+
+    let bestIndex = -1;
+
+    let bestDistance = Infinity;
+
+    for (
+        let i = 0;
+        i < notes.length;
+        i++
+    ) {
+
+        let note = notes[i];
+
+        if (
+            note.direction !==
+            direction
+        ) {
+
+            continue;
+        }
+
+        let distance =
+            Math.abs(
+                note.y - 165
+            );
+
+        if (
+            distance <
+            bestDistance
+        ) {
+
+            bestDistance = distance;
+
+            bestIndex = i;
+        }
+    }
+
+    if (
+        bestIndex !== -1 &&
+        bestDistance < 70
+    ) {
+
+        let note =
+            notes[bestIndex];
+
+        note.element.remove();
+
+        notes.splice(
+            bestIndex,
+            1
+        );
+
+        if (bestDistance < 18) {
+
+            score += 350;
+
+            message("PERFECT! 🔥");
+
+        }
+
+        else if (
+            bestDistance < 38
+        ) {
+
+            score += 200;
+
+            message("GREAT! ⭐");
+
+        }
+
+        else {
+
+            score += 100;
+
+            message("GOOD! 👍");
+        }
+
+        combo++;
+
+        health += 2;
+
+        if (health > 100) {
+
+            health = 100;
+        }
+
+        updateDisplay();
+
+        playHitSound();
+
+    }
+
+    else {
+
+        makeMiss();
+    }
+}
+
+
+/* =========================================================
+   MISS
+========================================================= */
+
+function missNote(index) {
+
+    let note = notes[index];
+
+    note.element.remove();
+
+    notes.splice(index, 1);
+
+    makeMiss();
+}
+
+
+function makeMiss() {
+
+    misses++;
+
+    combo = 0;
+
+    health -= 8;
+
+    if (health < 0) {
+
+        health = 0;
+    }
+
+    message("MISS! ❌");
+
+    updateDisplay();
+
+    playMissSound();
+
+    if (health <= 0) {
+
+        endGame(false);
+    }
+}
+
+
+/* =========================================================
+   DISPLAY
+========================================================= */
+
+function updateDisplay() {
+
+    document.getElementById(
+        "score"
+    ).textContent =
+        "Score: " +
+        score +
+        " | Misses: " +
+        misses;
+
+    document.getElementById(
+        "combo"
+    ).textContent =
+        "Combo: " +
+        combo;
+
+    document.getElementById(
+        "health"
+    ).style.width =
+        health + "%";
+}
+
+
+/* =========================================================
+   MESSAGE
+========================================================= */
+
+function message(text) {
+
+    document.getElementById(
+        "message"
+    ).textContent = text;
+}
+
+
+/* =========================================================
+   END GAME
+========================================================= */
+
+function endGame(won) {
+
+    playing = false;
+
+    for (
+        let note of notes
+    ) {
+
+        note.element.remove();
+    }
+
+    notes = [];
+
+    updateTimer(0);
+
+    let title =
+        document.getElementById(
+            "endTitle"
+        );
+
+    if (won) {
+
+        title.textContent =
+            "🏆 YOU BEAT SQUINKA! 🏆";
+
+    }
+
+    else {
+
+        title.textContent =
+            "🐱 SQUINKA WINS!";
+    }
+
+    document.getElementById(
+        "finalScore"
+    ).textContent =
+        "Final Score: " +
+        score +
+        " | Misses: " +
+        misses;
+
+    document.getElementById(
+        "endScreen"
+    ).style.display =
+        "flex";
+}
+
+
+/* =========================================================
+   MUSIC
+========================================================= */
+
+function playMusicBeat() {
+
+    if (!audioContext) return;
+
+    let current = levels[level];
+
+    let melodyNote =
+        current.melody[
+            musicStep %
+            current.melody.length
+        ];
+
+    let bassNote =
+        current.bass[
+            musicStep %
+            current.bass.length
+        ];
+
+    playTone(
+        melodyNote,
+        0.18,
+        "square",
+        0.035
+    );
+
+    if (
+        musicStep % 2 === 0
+    ) {
+
+        playTone(
+            bassNote,
+            0.28,
+            "triangle",
+            0.055
+        );
+    }
+
+    playKick();
+
+    if (
+        level === "normal" ||
+        level === "hard" ||
+        level === "insane"
+    ) {
+
+        playHiHat();
+    }
+
+    if (
+        level === "hard" ||
+        level === "insane"
+    ) {
+
+        if (
+            musicStep % 2 === 1
+        ) {
+
+            playHiHat();
+        }
+    }
+
+    if (
+        level === "insane" &&
+        musicStep % 4 === 2
+    ) {
+
+        playSnare();
+    }
+
+    musicStep++;
+}
+
+
+/* =========================================================
+   TONE
+========================================================= */
+
+function playTone(
+    frequency,
+    duration,
+    type,
+    volume
+) {
+
+    if (!audioContext) return;
+
+    let oscillator =
+        audioContext.createOscillator();
+
+    let gain =
+        audioContext.createGain();
+
+    oscillator.type = type;
+
+    oscillator.frequency.value =
+        frequency;
+
+    gain.gain.setValueAtTime(
+        volume,
+        audioContext.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioContext.currentTime +
+        duration
+    );
+
+    oscillator.connect(gain);
+
+    gain.connect(
+        audioContext.destination
+    );
+
+    oscillator.start();
+
+    oscillator.stop(
+        audioContext.currentTime +
+        duration
+    );
+}
+
+
+/* =========================================================
+   KICK
+========================================================= */
+
+function playKick() {
+
+    if (!audioContext) return;
+
+    let oscillator =
+        audioContext.createOscillator();
+
+    let gain =
+        audioContext.createGain();
+
+    oscillator.type = "sine";
+
+    oscillator.frequency.setValueAtTime(
+        130,
+        audioContext.currentTime
+    );
+
+    oscillator.frequency.exponentialRampToValueAtTime(
+        45,
+        audioContext.currentTime +
+        0.12
+    );
+
+    gain.gain.setValueAtTime(
+        0.09,
+        audioContext.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioContext.currentTime +
+        0.12
+    );
+
+    oscillator.connect(gain);
+
+    gain.connect(
+        audioContext.destination
+    );
+
+    oscillator.start();
+
+    oscillator.stop(
+        audioContext.currentTime +
+        0.12
+    );
+}
+
+
+/* =========================================================
+   HI-HAT
+========================================================= */
+
+function playHiHat() {
+
+    if (!audioContext) return;
+
+    let oscillator =
+        audioContext.createOscillator();
+
+    let gain =
+        audioContext.createGain();
+
+    oscillator.type = "square";
+
+    oscillator.frequency.value =
+        8000;
+
+    gain.gain.setValueAtTime(
+        0.018,
+        audioContext.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioContext.currentTime +
+        0.045
+    );
+
+    oscillator.connect(gain);
+
+    gain.connect(
+        audioContext.destination
+    );
+
+    oscillator.start();
+
+    oscillator.stop(
+        audioContext.currentTime +
+        0.045
+    );
+}
+
+
+/* =========================================================
+   SNARE
+========================================================= */
+
+function playSnare() {
+
+    if (!audioContext) return;
+
+    let oscillator =
+        audioContext.createOscillator();
+
+    let gain =
+        audioContext.createGain();
+
+    oscillator.type = "sawtooth";
+
+    oscillator.frequency.value =
+        180;
+
+    gain.gain.setValueAtTime(
+        0.035,
+        audioContext.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioContext.currentTime +
+        0.07
+    );
+
+    oscillator.connect(gain);
+
+    gain.connect(
+        audioContext.destination
+    );
+
+    oscillator.start();
+
+    oscillator.stop(
+        audioContext.currentTime +
+        0.07
+    );
+}
+
+
+/* =========================================================
+   HIT SOUND
+========================================================= */
+
+function playHitSound() {
+
+    if (!audioContext) return;
+
+    playTone(
+        600,
+        0.08,
+        "sine",
+        0.04
+    );
+}
+
+
+/* =========================================================
+   MISS SOUND
+========================================================= */
+
+function playMissSound() {
+
+    if (!audioContext) return;
+
+    playTone(
+        90,
+        0.18,
+        "sawtooth",
+        0.05
+    );
+}
+
+</script>
+
+</body>
+</html>
+

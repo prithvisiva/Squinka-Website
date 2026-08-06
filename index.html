@@ -21,6 +21,9 @@
 <button style="background-color: blue; color: white;" onclick="window.location.href='Aliengame.html';">
     👾 Squinka vs Aliens
 </button>
+<button style="background-color: blue; color: white;" onclick="window.location.href='squinkafnf.html';">
+    Squinka Rhythm Battle
+</button>
 <body>
     <h2>About the Squinka Website</h2>
     <h4> This website is about Squinkas, a make-believe creature <b>It is not a real animal.</b> </h4>
@@ -28,11 +31,66 @@
     <h4> This website will often be updated with new content!</h4>
     <h2>Rate This Website</h2>
     <h4>Click the link below to rate this website:</h4>
-    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdYUqr5v0EngTqhMP2IvWarluMFMu3CJHQhhtJUsJVEed46AA/viewform?usp=publish-editor">
-    Squinka Website Rating Form
-</a>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdYUqr5v0EngTqhMP2IvWarluMFMu3CJHQhhtJUsJVEed46AA/viewform?usp=publish-editor" target="_blank">
+        Squinka Website Rating Form
+    </a>
+    <br>
+    <!-- NEWS STRIP -->
+<div class="news-strip">
+    <div class="news-title">📰 NEWS</div>
 
-    
+    <div class="news-container">
+        <div class="news-text">
+            |8/5/2026 - Squinka VS. Aliens game is now available!| |8/6/2026 - You can now Know all the news of the Squinka website! Squinka Rhythm Battle is out!|
+        </div>
+    </div>
+</div>
+
+<style>
+.news-strip {
+    position: relative;
+    top: 100px; /* Moves the news strip lower */
+    width: 100%;
+    background-color: white;
+    color: black;
+    padding: 12px 0;
+    overflow: hidden;
+    border-top: 3px solid black;
+    border-bottom: 3px solid black;
+    box-sizing: border-box;
+}
+
+.news-title {
+    font-size: 22px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.news-container {
+    width: 100%;
+    overflow: hidden;
+}
+
+.news-text {
+    white-space: nowrap;
+    display: inline-block;
+    font-size: 18px;
+
+    /* Moving animation */
+    animation: newsMove 10s linear infinite;
+}
+
+@keyframes newsMove {
+    0% {
+        transform: translateX(100vw);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
+}
+</style>
 </body>
 </body>
 
