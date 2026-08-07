@@ -1,0 +1,2301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Squinka Jump</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    color: white;
+    background: #168bd0;
+}
+
+h1 {
+    margin: 10px 0 5px;
+}
+
+#worldName {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+#ui {
+    font-size: 19px;
+    font-weight: bold;
+    margin: 8px;
+}
+
+#message {
+    height: 28px;
+    font-weight: bold;
+}
+
+#gameArea {
+    width: 900px;
+    max-width: 95%;
+    height: 500px;
+    margin: auto;
+    position: relative;
+    overflow: hidden;
+    border: 5px solid white;
+    border-radius: 15px;
+}
+
+#world {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 500px;
+}
+
+#player {
+    position: absolute;
+    width: 52px;
+    height: 52px;
+    font-size: 47px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    user-select: none;
+}
+
+.platform {
+    position: absolute;
+    background: #4caf50;
+    border: 4px solid #245c27;
+    border-radius: 8px;
+    z-index: 10;
+}
+
+.world3 .platform {
+    background: #b9f3ff;
+    border-color: #4d9db5;
+    box-shadow: inset 0 8px rgba(255,255,255,0.45);
+}
+
+.coin {
+    position: absolute;
+    font-size: 29px;
+    width: 32px;
+    height: 32px;
+    z-index: 30;
+    user-select: none;
+}
+
+.oneUp {
+    position: absolute;
+    font-size: 34px;
+    width: 38px;
+    height: 38px;
+    z-index: 30;
+    user-select: none;
+}
+
+.goal {
+    position: absolute;
+    font-size: 55px;
+    width: 55px;
+    height: 60px;
+    z-index: 30;
+}
+
+.obstacle {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    z-index: 25;
+}
+
+.obstacle::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-left: 22px solid transparent;
+    border-right: 22px solid transparent;
+    border-bottom: 44px solid #555;
+}
+
+.decor {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+    z-index: 4;
+}
+
+.tree {
+    font-size: 60px;
+}
+
+.flower {
+    font-size: 27px;
+}
+
+.cactus {
+    font-size: 52px;
+}
+
+.rock {
+    font-size: 38px;
+}
+
+.snowman {
+    font-size: 52px;
+}
+
+.volcano {
+    font-size: 70px;
+}
+
+.world1 {
+    background:
+        linear-gradient(
+            #79d0ff 0%,
+            #79d0ff 67%,
+            #76cf58 67%,
+            #76cf58 100%
+        );
+}
+
+.world1 .platform {
+    background: #4caf50;
+    border-color: #245c27;
+}
+
+.world2 {
+    background:
+        linear-gradient(
+            #f6ca82 0%,
+            #f6ca82 67%,
+            #d9a64c 67%,
+            #d9a64c 100%
+        );
+}
+
+.world2 .platform {
+    background: #c98b3e;
+    border-color: #754b1d;
+}
+
+.world3 {
+    background:
+        linear-gradient(
+            #bceeff 0%,
+            #bceeff 67%,
+            #e8fbff 67%,
+            #e8fbff 100%
+        );
+}
+
+.world4 {
+    background:
+        linear-gradient(
+            #48171d 0%,
+            #7e2921 67%,
+            #24100e 67%,
+            #24100e 100%
+        );
+}
+
+.world4 .platform {
+    background: #704135;
+    border-color: #321914;
+}
+
+button {
+    border: none;
+    padding: 10px 17px;
+    margin: 4px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    transform: scale(1.04);
+}
+
+#pauseButton {
+    background: #ffd54f;
+    color: black;
+}
+
+#restartButton {
+    background: #ef4444;
+    color: white;
+}
+
+#restartEverythingButton {
+    background: #ff9800;
+    color: white;
+}
+
+#backButton {
+    background: white;
+    color: #0877c9;
+}
+
+#levels {
+    max-width: 900px;
+    margin: 10px auto;
+}
+
+.levelButton {
+    width: 44px;
+    height: 40px;
+    padding: 4px;
+    background: white;
+    color: #0877c9;
+}
+
+.levelButton.current {
+    background: #ffd54f;
+    color: black;
+}
+
+.levelButton:disabled {
+    background: #777;
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+#pauseScreen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.65);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+#pauseScreen h2 {
+    font-size: 42px;
+    margin: 10px;
+}
+
+#pauseScreen p {
+    font-size: 20px;
+}
+
+#iceText {
+    display: none;
+    font-size: 16px;
+    font-weight: bold;
+    color: #dfffff;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>😺 Squinka Platformer</h1>
+
+<div id="worldName">
+    🌱 Grass World
+</div>
+
+<div id="iceText">
+    🧊 ICE PHYSICS: SLIPPERY!
+</div>
+
+<div id="ui">
+
+    ⭐ Level:
+    <span id="levelNumber">1</span>
+
+    &nbsp;&nbsp;
+
+    🪙 Coins:
+    <span id="coinCount">0</span>
+
+    &nbsp;&nbsp;
+
+    🍄 1-Ups:
+    <span id="oneUpCount">3</span>
+
+</div>
+
+<div id="message"></div>
+
+<div id="gameArea">
+
+    <div id="world">
+        <div id="player">😺</div>
+    </div>
+
+    <div id="pauseScreen">
+
+        <h2>⏸️ PAUSED</h2>
+
+        <p>Press Resume to continue!</p>
+
+        <button onclick="togglePause()">
+            ▶️ Resume
+        </button>
+
+    </div>
+
+</div>
+
+<div>
+
+    <button
+        id="pauseButton"
+        onclick="togglePause()">
+        ⏸️ Pause
+    </button>
+
+    <button
+        id="restartButton"
+        onclick="restartLevel()">
+        🔄 Restart Level
+    </button>
+
+    <button
+        id="restartEverythingButton"
+        onclick="restartEverything()">
+        🔄 Restart Everything
+    </button>
+
+    <button
+        id="backButton"
+        onclick="goBack()">
+        🔙 Back to Main Page
+    </button>
+
+</div>
+
+<h2>Choose Level</h2>
+
+<div id="levels"></div>
+
+
+<script>
+
+/* =====================================================
+   ELEMENTS
+===================================================== */
+
+const gameArea =
+    document.getElementById("gameArea");
+
+const world =
+    document.getElementById("world");
+
+const player =
+    document.getElementById("player");
+
+const worldName =
+    document.getElementById("worldName");
+
+const pauseScreen =
+    document.getElementById("pauseScreen");
+
+const pauseButton =
+    document.getElementById("pauseButton");
+
+const iceText =
+    document.getElementById("iceText");
+
+
+/* =====================================================
+   SAVED DATA
+===================================================== */
+
+let currentLevel =
+    Number(
+        localStorage.getItem(
+            "squinkaPlatformerLevel"
+        )
+    ) || 1;
+
+let highestLevel =
+    Number(
+        localStorage.getItem(
+            "squinkaHighestLevel"
+        )
+    ) || 1;
+
+let coins =
+    Number(
+        localStorage.getItem(
+            "squinkaPlatformerCoins"
+        )
+    ) || 0;
+
+let oneUps =
+    Number(
+        localStorage.getItem(
+            "squinkaOneUps"
+        )
+    );
+
+if (isNaN(oneUps)) {
+    oneUps = 3;
+}
+
+
+/* =====================================================
+   PLAYER VARIABLES
+===================================================== */
+
+let playerX = 40;
+let playerY = 350;
+
+let velocityX = 0;
+let velocityY = 0;
+
+let onGround = false;
+
+let keys = {};
+
+let levelObjects = [];
+
+let gameRunning = true;
+
+let paused = false;
+
+
+/* =====================================================
+   PHYSICS
+===================================================== */
+
+const gravity = 0.7;
+const jumpPower = -13;
+const moveSpeed = 5;
+
+const normalAcceleration = 0.9;
+const normalFriction = 0.72;
+
+const iceAcceleration = 0.55;
+const iceFriction = 0.94;
+
+
+/* =====================================================
+   LEVEL GENERATION
+===================================================== */
+
+const levels = [];
+
+for (
+    let levelNumber = 1;
+    levelNumber <= 20;
+    levelNumber++
+) {
+
+    let platforms = [];
+    let coinsForLevel = [];
+    let obstacles = [];
+    let oneUpsForLevel = [];
+
+    let platformCount =
+        9 + Math.floor(levelNumber / 3);
+
+    let x = 0;
+
+    let yPositions = [
+        420,
+        390,
+        360,
+        330,
+        370,
+        400
+    ];
+
+    for (
+        let p = 0;
+        p < platformCount;
+        p++
+    ) {
+
+        let width =
+            180 +
+            (
+                (p * 17 +
+                levelNumber * 11)
+                % 80
+            );
+
+        let gap =
+            45 +
+            (
+                (p * 9 +
+                levelNumber * 3)
+                % 25
+            );
+
+        let y =
+            yPositions[
+                (p + levelNumber)
+                % yPositions.length
+            ];
+
+        if (p === 0) {
+
+            x = 0;
+            y = 420;
+            width = 260;
+
+        }
+
+        platforms.push([
+            x,
+            y,
+            width,
+            500 - y
+        ]);
+
+        coinsForLevel.push([
+            x + width / 2 - 15,
+            y - 42
+        ]);
+
+        if (
+            p > 0 &&
+            p % 2 === 0 &&
+            width >= 190
+        ) {
+
+            obstacles.push([
+                x + width - 60,
+                y - 44
+            ]);
+
+        }
+
+        if (
+            p % 3 === 0 &&
+            width >= 210
+        ) {
+
+            coinsForLevel.push([
+                x + 35,
+                y - 42
+            ]);
+
+        }
+
+        x += width + gap;
+    }
+
+    platforms.push([
+        x,
+        390,
+        300,
+        110
+    ]);
+
+    let goal = [
+        x + 215,
+        325
+    ];
+
+    if (
+        levelNumber % 3 === 0
+    ) {
+
+        let middleIndex =
+            Math.floor(platformCount / 2);
+
+        let platform =
+            platforms[middleIndex];
+
+        oneUpsForLevel.push([
+            platform[0] +
+            platform[2] / 2 - 18,
+            platform[1] - 45
+        ]);
+
+    }
+
+    levels.push({
+
+        width: x + 300,
+        platforms: platforms,
+        coins: coinsForLevel,
+        obstacles: obstacles,
+        oneUps: oneUpsForLevel,
+        goal: goal
+
+    });
+
+}
+
+
+/* =====================================================
+   KEYBOARD
+===================================================== */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        keys[event.key] = true;
+
+        if (
+            event.key.toLowerCase() === "p"
+        ) {
+
+            togglePause();
+
+        }
+
+        if (
+            event.key === "ArrowUp" ||
+            event.key === " "
+        ) {
+
+            if (
+                onGround &&
+                !paused
+            ) {
+
+                velocityY = jumpPower;
+
+            }
+
+        }
+
+        if (
+            event.key === "ArrowLeft" ||
+            event.key === "ArrowRight" ||
+            event.key === "ArrowUp" ||
+            event.key === " "
+        ) {
+
+            event.preventDefault();
+
+        }
+
+    }
+);
+
+document.addEventListener(
+    "keyup",
+    function(event) {
+
+        keys[event.key] = false;
+
+    }
+);
+
+
+/* =====================================================
+   COLLISION
+===================================================== */
+
+function isColliding(a, b) {
+
+    return (
+
+        a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y
+
+    );
+
+}
+
+
+/* =====================================================
+   ACCURATE SPIKE HITBOX
+===================================================== */
+
+function playerHitsSpike(
+    px,
+    py,
+    pw,
+    ph,
+    sx,
+    sy
+) {
+
+    const left = px + 9;
+    const right = px + pw - 9;
+    const top = py + 9;
+    const bottom = py + ph - 5;
+
+    const spikeTop = sy + 3;
+    const spikeBottom = sy + 44;
+
+    if (
+        bottom <= spikeTop ||
+        top >= spikeBottom
+    ) {
+
+        return false;
+
+    }
+
+    for (
+        let i = 0;
+        i <= 20;
+        i++
+    ) {
+
+        let y =
+            top +
+            (
+                (bottom - top) *
+                i /
+                20
+            );
+
+        if (
+            y < spikeTop ||
+            y > spikeBottom
+        ) {
+
+            continue;
+
+        }
+
+        let progress =
+            (
+                y - spikeTop
+            ) /
+            (
+                spikeBottom -
+                spikeTop
+            );
+
+        let halfWidth =
+            22 * progress;
+
+        let spikeLeft =
+            sx + 22 - halfWidth;
+
+        let spikeRight =
+            sx + 22 + halfWidth;
+
+        if (
+            right > spikeLeft &&
+            left < spikeRight
+        ) {
+
+            return true;
+
+        }
+
+    }
+
+    return false;
+
+}
+
+
+/* =====================================================
+   WORLD NUMBER
+===================================================== */
+
+function getWorldNumber(level) {
+
+    if (level <= 5) return 1;
+    if (level <= 10) return 2;
+    if (level <= 15) return 3;
+
+    return 4;
+
+}
+
+
+/* =====================================================
+   SETUP WORLD
+===================================================== */
+
+function setupWorld(levelNumber) {
+
+    let worldNumber =
+        getWorldNumber(levelNumber);
+
+    gameArea.className = "";
+
+    gameArea.classList.add(
+        "world" + worldNumber
+    );
+
+
+    if (worldNumber === 1) {
+
+        worldName.textContent =
+            "🌱 Grass World";
+
+        document.body.style.background =
+            "#168bd0";
+
+        iceText.style.display =
+            "none";
+
+    }
+
+    if (worldNumber === 2) {
+
+        worldName.textContent =
+            "🏜️ Desert World";
+
+        document.body.style.background =
+            "#c98232";
+
+        iceText.style.display =
+            "none";
+
+    }
+
+    if (worldNumber === 3) {
+
+        worldName.textContent =
+            "❄️ Ice World";
+
+        document.body.style.background =
+            "#55aeca";
+
+        iceText.style.display =
+            "block";
+
+    }
+
+    if (worldNumber === 4) {
+
+        worldName.textContent =
+            "🌋 Volcano World";
+
+        document.body.style.background =
+            "#541820";
+
+        iceText.style.display =
+            "none";
+
+    }
+
+
+    document
+        .querySelectorAll(".decor")
+        .forEach(
+            element => element.remove()
+        );
+
+
+    let level =
+        levels[levelNumber - 1];
+
+
+    level.platforms.forEach(
+        function(platform, index) {
+
+            if (index === 0) return;
+
+            if (
+                index ===
+                level.platforms.length - 1
+            ) return;
+
+            let hasSpike =
+                level.obstacles.some(
+                    function(spike) {
+
+                        return (
+                            spike[0] >= platform[0] &&
+                            spike[0] <
+                            platform[0] +
+                            platform[2]
+                        );
+
+                    }
+                );
+
+            if (hasSpike) return;
+
+            if (index % 3 !== 0) return;
+
+
+            let emoji = "";
+            let type = "";
+
+            if (worldNumber === 1) {
+
+                if (index % 2 === 0) {
+
+                    emoji = "🌳";
+                    type = "tree";
+
+                } else {
+
+                    emoji = "🌼";
+                    type = "flower";
+
+                }
+
+            }
+
+            if (worldNumber === 2) {
+
+                if (index % 2 === 0) {
+
+                    emoji = "🌵";
+                    type = "cactus";
+
+                } else {
+
+                    emoji = "🪨";
+                    type = "rock";
+
+                }
+
+            }
+
+            if (worldNumber === 3) {
+
+                if (index % 2 === 0) {
+
+                    emoji = "⛄";
+                    type = "snowman";
+
+                } else {
+
+                    emoji = "❄️";
+                    type = "flower";
+
+                }
+
+            }
+
+            if (worldNumber === 4) {
+
+                if (index % 2 === 0) {
+
+                    emoji = "🌋";
+                    type = "volcano";
+
+                } else {
+
+                    emoji = "🪨";
+                    type = "rock";
+
+                }
+
+            }
+
+
+            let element =
+                document.createElement(
+                    "div"
+                );
+
+            element.className =
+                "decor " + type;
+
+            element.textContent =
+                emoji;
+
+
+            let size = 40;
+
+            if (type === "tree")
+                size = 60;
+
+            if (type === "cactus")
+                size = 52;
+
+            if (type === "snowman")
+                size = 52;
+
+            if (type === "volcano")
+                size = 70;
+
+
+            element.style.left =
+                (
+                    platform[0] +
+                    platform[2] / 2 -
+                    size / 2
+                ) + "px";
+
+            element.style.top =
+                (
+                    platform[1] -
+                    size + 8
+                ) + "px";
+
+
+            world.appendChild(
+                element
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   LOAD LEVEL
+===================================================== */
+
+function loadLevel(levelNumber) {
+
+    currentLevel =
+        levelNumber;
+
+    let level =
+        levels[currentLevel - 1];
+
+    gameRunning = true;
+    paused = false;
+
+    pauseScreen.style.display =
+        "none";
+
+    pauseButton.textContent =
+        "⏸️ Pause";
+
+
+    world.innerHTML = "";
+
+    world.appendChild(player);
+
+    levelObjects = [];
+
+
+    world.style.width =
+        level.width + "px";
+
+
+    /*
+       ALWAYS START AT THE
+       BEGINNING OF THE LEVEL.
+    */
+
+    playerX = 40;
+
+    playerY =
+        level.platforms[0][1] -
+        52;
+
+    velocityX = 0;
+    velocityY = 0;
+
+    onGround = false;
+
+
+    /* PLATFORMS */
+
+    level.platforms.forEach(
+        function(data) {
+
+            let platform =
+                document.createElement(
+                    "div"
+                );
+
+            platform.className =
+                "platform";
+
+            platform.style.left =
+                data[0] + "px";
+
+            platform.style.top =
+                data[1] + "px";
+
+            platform.style.width =
+                data[2] + "px";
+
+            platform.style.height =
+                data[3] + "px";
+
+
+            world.appendChild(
+                platform
+            );
+
+
+            levelObjects.push({
+
+                element: platform,
+                type: "platform",
+                x: data[0],
+                y: data[1],
+                width: data[2],
+                height: data[3]
+
+            });
+
+        }
+    );
+
+
+    /* COINS */
+
+    level.coins.forEach(
+        function(data) {
+
+            let coin =
+                document.createElement(
+                    "div"
+                );
+
+            coin.className =
+                "coin";
+
+            coin.textContent =
+                "🪙";
+
+            coin.style.left =
+                data[0] + "px";
+
+            coin.style.top =
+                data[1] + "px";
+
+
+            world.appendChild(
+                coin
+            );
+
+
+            levelObjects.push({
+
+                element: coin,
+                type: "coin",
+                x: data[0],
+                y: data[1],
+                width: 32,
+                height: 32,
+                collected: false
+
+            });
+
+        }
+    );
+
+
+    /* 1-UPS */
+
+    level.oneUps.forEach(
+        function(data) {
+
+            let oneUp =
+                document.createElement(
+                    "div"
+                );
+
+            oneUp.className =
+                "oneUp";
+
+            oneUp.textContent =
+                "🍄";
+
+            oneUp.style.left =
+                data[0] + "px";
+
+            oneUp.style.top =
+                data[1] + "px";
+
+
+            world.appendChild(
+                oneUp
+            );
+
+
+            levelObjects.push({
+
+                element: oneUp,
+                type: "oneUp",
+                x: data[0],
+                y: data[1],
+                width: 38,
+                height: 38,
+                collected: false
+
+            });
+
+        }
+    );
+
+
+    /* SPIKES */
+
+    level.obstacles.forEach(
+        function(data) {
+
+            let spike =
+                document.createElement(
+                    "div"
+                );
+
+            spike.className =
+                "obstacle";
+
+            spike.style.left =
+                data[0] + "px";
+
+            spike.style.top =
+                data[1] + "px";
+
+
+            world.appendChild(
+                spike
+            );
+
+
+            levelObjects.push({
+
+                element: spike,
+                type: "obstacle",
+                x: data[0],
+                y: data[1],
+                width: 44,
+                height: 44
+
+            });
+
+        }
+    );
+
+
+    /* GOAL */
+
+    let goal =
+        document.createElement(
+            "div"
+        );
+
+    goal.className =
+        "goal";
+
+    goal.textContent =
+        "🚩";
+
+    goal.style.left =
+        level.goal[0] + "px";
+
+    goal.style.top =
+        level.goal[1] + "px";
+
+
+    world.appendChild(
+        goal
+    );
+
+
+    levelObjects.push({
+
+        element: goal,
+        type: "goal",
+        x: level.goal[0],
+        y: level.goal[1],
+        width: 55,
+        height: 60
+
+    });
+
+
+    setupWorld(currentLevel);
+
+    updateUI();
+
+    createLevelButtons();
+
+
+    world.style.left =
+        "0px";
+
+    player.style.left =
+        playerX + "px";
+
+    player.style.top =
+        playerY + "px";
+
+}
+
+
+/* =====================================================
+   PLAYER UPDATE
+===================================================== */
+
+function updatePlayer() {
+
+    if (
+        !gameRunning ||
+        paused
+    ) {
+
+        return;
+
+    }
+
+
+    const isIceWorld =
+        getWorldNumber(
+            currentLevel
+        ) === 3;
+
+
+    /* MOVEMENT */
+
+    if (keys["ArrowLeft"]) {
+
+        if (isIceWorld) {
+
+            velocityX -=
+                iceAcceleration;
+
+            if (
+                velocityX <
+                -moveSpeed * 1.35
+            ) {
+
+                velocityX =
+                    -moveSpeed * 1.35;
+
+            }
+
+        }
+
+        else {
+
+            velocityX -=
+                normalAcceleration;
+
+            if (
+                velocityX <
+                -moveSpeed
+            ) {
+
+                velocityX =
+                    -moveSpeed;
+
+            }
+
+        }
+
+    }
+
+    else if (keys["ArrowRight"]) {
+
+        if (isIceWorld) {
+
+            velocityX +=
+                iceAcceleration;
+
+            if (
+                velocityX >
+                moveSpeed * 1.35
+            ) {
+
+                velocityX =
+                    moveSpeed * 1.35;
+
+            }
+
+        }
+
+        else {
+
+            velocityX +=
+                normalAcceleration;
+
+            if (
+                velocityX >
+                moveSpeed
+            ) {
+
+                velocityX =
+                    moveSpeed;
+
+            }
+
+        }
+
+    }
+
+    else {
+
+        if (isIceWorld) {
+
+            velocityX *=
+                iceFriction;
+
+        }
+
+        else {
+
+            velocityX *=
+                normalFriction;
+
+        }
+
+    }
+
+
+    if (isIceWorld) {
+
+        if (
+            Math.abs(velocityX) <
+            0.04
+        ) {
+
+            velocityX = 0;
+
+        }
+
+    }
+
+    else {
+
+        if (
+            Math.abs(velocityX) <
+            0.12
+        ) {
+
+            velocityX = 0;
+
+        }
+
+    }
+
+
+    /* GRAVITY */
+
+    velocityY += gravity;
+
+    playerX += velocityX;
+
+    playerY += velocityY;
+
+
+    onGround = false;
+
+
+    let playerRect = {
+
+        x: playerX,
+        y: playerY,
+        width: 52,
+        height: 52
+
+    };
+
+
+    /* PLATFORM COLLISION */
+
+    for (
+        let object of levelObjects
+    ) {
+
+        if (
+            object.type !==
+            "platform"
+        ) {
+
+            continue;
+
+        }
+
+
+        let platformRect = {
+
+            x: object.x,
+            y: object.y,
+            width: object.width,
+            height: object.height
+
+        };
+
+
+        if (
+            !isColliding(
+                playerRect,
+                platformRect
+            )
+        ) {
+
+            continue;
+
+        }
+
+
+        if (
+            velocityY >= 0 &&
+            playerY + 52 - velocityY
+            <= object.y + 8
+        ) {
+
+            playerY =
+                object.y - 52;
+
+            velocityY = 0;
+
+            onGround = true;
+
+        }
+
+        else {
+
+            if (
+                velocityX > 0
+            ) {
+
+                playerX =
+                    object.x - 52;
+
+            }
+
+            else if (
+                velocityX < 0
+            ) {
+
+                playerX =
+                    object.x +
+                    object.width;
+
+            }
+
+            velocityX = 0;
+
+        }
+
+    }
+
+
+    playerRect = {
+
+        x: playerX,
+        y: playerY,
+        width: 52,
+        height: 52
+
+    };
+
+
+    /* OBJECT COLLISION */
+
+    for (
+        let object of levelObjects
+    ) {
+
+        if (
+            object.type ===
+            "obstacle"
+        ) {
+
+            if (
+                playerHitsSpike(
+                    playerX,
+                    playerY,
+                    52,
+                    52,
+                    object.x,
+                    object.y
+                )
+            ) {
+
+                die();
+
+                return;
+
+            }
+
+            continue;
+
+        }
+
+
+        let objectRect = {
+
+            x: object.x,
+            y: object.y,
+            width: object.width,
+            height: object.height
+
+        };
+
+
+        if (
+            !isColliding(
+                playerRect,
+                objectRect
+            )
+        ) {
+
+            continue;
+
+        }
+
+
+        /* COIN */
+
+        if (
+            object.type ===
+            "coin" &&
+            !object.collected
+        ) {
+
+            object.collected = true;
+
+            object.element.remove();
+
+            coins++;
+
+            saveGame();
+
+            updateUI();
+
+        }
+
+
+        /* 1-UP */
+
+        if (
+            object.type ===
+            "oneUp" &&
+            !object.collected
+        ) {
+
+            object.collected = true;
+
+            object.element.remove();
+
+            oneUps++;
+
+            saveGame();
+
+            updateUI();
+
+            showMessage(
+                "🍄 You got a 1-Up!"
+            );
+
+        }
+
+
+        /* GOAL */
+
+        if (
+            object.type ===
+            "goal"
+        ) {
+
+            beatLevel();
+
+            return;
+
+        }
+
+    }
+
+
+    /* VOID */
+
+    if (
+        playerY > 540
+    ) {
+
+        die();
+
+        return;
+
+    }
+
+
+    /* LEFT EDGE */
+
+    if (
+        playerX < 0
+    ) {
+
+        playerX = 0;
+        velocityX = 0;
+
+    }
+
+
+    /* RIGHT EDGE */
+
+    let levelWidth =
+        levels[
+            currentLevel - 1
+        ].width;
+
+
+    if (
+        playerX >
+        levelWidth - 52
+    ) {
+
+        playerX =
+            levelWidth - 52;
+
+        velocityX = 0;
+
+    }
+
+
+    /* DRAW */
+
+    player.style.left =
+        playerX + "px";
+
+    player.style.top =
+        playerY + "px";
+
+
+    /* CAMERA */
+
+    let cameraX =
+        playerX - 300;
+
+
+    if (cameraX < 0)
+        cameraX = 0;
+
+
+    let maxCamera =
+        levelWidth -
+        gameArea.clientWidth;
+
+
+    if (maxCamera < 0)
+        maxCamera = 0;
+
+
+    if (cameraX > maxCamera)
+        cameraX = maxCamera;
+
+
+    world.style.left =
+        -cameraX + "px";
+
+}
+
+
+/* =====================================================
+   DEATH SYSTEM
+===================================================== */
+
+function die() {
+
+    if (
+        !gameRunning ||
+        paused
+    ) {
+
+        return;
+
+    }
+
+
+    gameRunning = false;
+
+    oneUps--;
+
+    saveGame();
+
+    updateUI();
+
+
+    /*
+       ============================================
+       IMPORTANT:
+       IF THE PLAYER HAS NO 1-UPS LEFT:
+       RESET EVERYTHING AND GO TO LEVEL 1.
+       ============================================
+    */
+
+    if (
+        oneUps <= 0
+    ) {
+
+        /*
+           Reset ALL progress.
+        */
+
+        currentLevel = 1;
+
+        highestLevel = 1;
+
+        coins = 0;
+
+        oneUps = 3;
+
+
+        /*
+           Delete saved progress.
+        */
+
+        localStorage.removeItem(
+            "squinkaPlatformerLevel"
+        );
+
+        localStorage.removeItem(
+            "squinkaHighestLevel"
+        );
+
+        localStorage.removeItem(
+            "squinkaPlatformerCoins"
+        );
+
+        localStorage.removeItem(
+            "squinkaOneUps"
+        );
+
+
+        updateUI();
+
+        createLevelButtons();
+
+
+        showMessage(
+            "💀 NO 1-UPS LEFT! BACK TO LEVEL 1!"
+        );
+
+
+        /*
+           Wait a moment so the player
+           can see the message.
+        */
+
+        setTimeout(
+            function() {
+
+                loadLevel(1);
+
+                showMessage(
+                    "🌟 Starting over at Level 1!"
+                );
+
+            },
+            1200
+        );
+
+
+        return;
+
+    }
+
+
+    /*
+       If there are still 1-Ups,
+       restart the CURRENT level.
+    */
+
+    showMessage(
+        "💥 You died! Back to the start!"
+    );
+
+
+    setTimeout(
+        function() {
+
+            loadLevel(
+                currentLevel
+            );
+
+        },
+        650
+    );
+
+}
+
+
+/* =====================================================
+   PAUSE
+===================================================== */
+
+function togglePause() {
+
+    if (!gameRunning) {
+        return;
+    }
+
+
+    paused = !paused;
+
+
+    if (paused) {
+
+        pauseScreen.style.display =
+            "flex";
+
+        pauseButton.textContent =
+            "▶️ Resume";
+
+    }
+
+    else {
+
+        pauseScreen.style.display =
+            "none";
+
+        pauseButton.textContent =
+            "⏸️ Pause";
+
+    }
+
+}
+
+
+/* =====================================================
+   RESTART LEVEL
+===================================================== */
+
+function restartLevel() {
+
+    loadLevel(
+        currentLevel
+    );
+
+    showMessage(
+        "🔄 Level restarted!"
+    );
+
+}
+
+
+/* =====================================================
+   BEAT LEVEL
+===================================================== */
+
+function beatLevel() {
+
+    if (
+        !gameRunning
+    ) {
+
+        return;
+
+    }
+
+
+    gameRunning = false;
+
+
+    if (
+        currentLevel < 20
+    ) {
+
+        showMessage(
+            "🎉 LEVEL " +
+            currentLevel +
+            " BEAT!"
+        );
+
+
+        highestLevel =
+            Math.max(
+                highestLevel,
+                currentLevel + 1
+            );
+
+
+        currentLevel++;
+
+        saveGame();
+
+        createLevelButtons();
+
+
+        setTimeout(
+            function() {
+
+                loadLevel(
+                    currentLevel
+                );
+
+            },
+            1000
+        );
+
+    }
+
+    else {
+
+        highestLevel = 20;
+
+        saveGame();
+
+        createLevelButtons();
+
+        showMessage(
+            "🏆 YOU BEAT ALL 20 LEVELS!"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   RESTART EVERYTHING BUTTON
+===================================================== */
+
+function restartEverything() {
+
+    currentLevel = 1;
+
+    highestLevel = 1;
+
+    coins = 0;
+
+    oneUps = 3;
+
+
+    localStorage.removeItem(
+        "squinkaPlatformerLevel"
+    );
+
+    localStorage.removeItem(
+        "squinkaHighestLevel"
+    );
+
+    localStorage.removeItem(
+        "squinkaPlatformerCoins"
+    );
+
+    localStorage.removeItem(
+        "squinkaOneUps"
+    );
+
+
+    loadLevel(1);
+
+    updateUI();
+
+    createLevelButtons();
+
+
+    showMessage(
+        "🔄 EVERYTHING RESET!"
+    );
+
+}
+
+
+/* =====================================================
+   UI
+===================================================== */
+
+function updateUI() {
+
+    document.getElementById(
+        "levelNumber"
+    ).textContent =
+        currentLevel;
+
+    document.getElementById(
+        "coinCount"
+    ).textContent =
+        coins;
+
+    document.getElementById(
+        "oneUpCount"
+    ).textContent =
+        oneUps;
+
+}
+
+
+/* =====================================================
+   LEVEL BUTTONS
+===================================================== */
+
+function createLevelButtons() {
+
+    const container =
+        document.getElementById(
+            "levels"
+        );
+
+    container.innerHTML = "";
+
+
+    for (
+        let i = 1;
+        i <= 20;
+        i++
+    ) {
+
+        let button =
+            document.createElement(
+                "button"
+            );
+
+        button.className =
+            "levelButton";
+
+        button.textContent =
+            i;
+
+
+        /*
+           Only levels up to the
+           highest unlocked level
+           can be selected.
+        */
+
+        if (
+            i > highestLevel
+        ) {
+
+            button.disabled = true;
+
+        }
+
+
+        if (
+            i === currentLevel
+        ) {
+
+            button.classList.add(
+                "current"
+            );
+
+        }
+
+
+        button.onclick =
+            function() {
+
+                currentLevel = i;
+
+                saveGame();
+
+                loadLevel(i);
+
+            };
+
+
+        container.appendChild(
+            button
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   MESSAGE
+===================================================== */
+
+function showMessage(text) {
+
+    document.getElementById(
+        "message"
+    ).textContent =
+        text;
+
+
+    setTimeout(
+        function() {
+
+            if (
+                gameRunning &&
+                !paused
+            ) {
+
+                document.getElementById(
+                    "message"
+                ).textContent =
+                    "";
+
+            }
+
+        },
+        1500
+    );
+
+}
+
+
+/* =====================================================
+   SAVE GAME
+===================================================== */
+
+function saveGame() {
+
+    localStorage.setItem(
+        "squinkaPlatformerLevel",
+        currentLevel
+    );
+
+    localStorage.setItem(
+        "squinkaHighestLevel",
+        highestLevel
+    );
+
+    localStorage.setItem(
+        "squinkaPlatformerCoins",
+        coins
+    );
+
+    localStorage.setItem(
+        "squinkaOneUps",
+        oneUps
+    );
+
+}
+
+
+/* =====================================================
+   BACK TO MAIN PAGE
+===================================================== */
+
+function goBack() {
+
+    window.location.href =
+        "index.html";
+
+}
+
+
+/* =====================================================
+   GAME LOOP
+===================================================== */
+
+function gameLoop() {
+
+    updatePlayer();
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+}
+
+
+/* =====================================================
+   START
+===================================================== */
+
+loadLevel(
+    currentLevel
+);
+
+gameLoop();
+
+</script>
+
+</body>
+</html>
+
