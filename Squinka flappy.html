@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Squinka Flappy</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    font-family: Arial, sans-serif;
+
+    background: #7ed6ff;
+}
+
+canvas {
+    display: block;
+}
+
+/* =========================
+   START SCREEN
+========================= */
+
+#startScreen {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 20;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    background:
+        linear-gradient(
+            #73d4ff,
+            #c8f3ff
+        );
+}
+
+.startBox {
+    width: 430px;
+
+    max-width: 90%;
+
+    padding: 35px;
+
+    text-align: center;
+
+    background: rgba(255,255,255,.9);
+
+    border: 5px solid #ffd84d;
+
+    border-radius: 25px;
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.25);
+}
+
+.title {
+    margin: 0;
+
+    font-size: 48px;
+
+    color: #f0a900;
+
+    text-shadow:
+        0 3px #7b5600;
+}
+
+.squinkaBig {
+    font-size: 90px;
+
+    margin: 15px;
+}
+
+.startButton {
+    width: 100%;
+
+    padding: 16px;
+
+    margin-top: 15px;
+
+    border: none;
+
+    border-radius: 15px;
+
+    background: #ffd84d;
+
+    color: #563f00;
+
+    font-size: 24px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.startButton:hover {
+    transform: scale(1.03);
+}
+
+/* =========================
+   HUD
+========================= */
+
+#hud {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 10;
+
+    pointer-events: none;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#score {
+    position: absolute;
+
+    top: 20px;
+
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    font-size: 55px;
+
+    font-weight: bold;
+
+    color: white;
+
+    text-shadow:
+        0 4px 5px rgba(0,0,0,.5);
+}
+
+#highScore {
+    position: absolute;
+
+    top: 80px;
+
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    color: white;
+
+    font-weight: bold;
+
+    text-shadow:
+        0 2px 4px black;
+}
+
+#pauseButton {
+    position: absolute;
+
+    top: 20px;
+
+    right: 20px;
+
+    padding: 10px 18px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background: rgba(0,0,0,.65);
+
+    color: white;
+
+    font-size: 17px;
+
+    pointer-events: auto;
+
+    cursor: pointer;
+}
+
+/* =========================
+   PAUSE
+========================= */
+
+#pauseScreen,
+#gameOverScreen {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 30;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    background: rgba(0,0,0,.65);
+}
+
+.overlayBox {
+    width: 420px;
+
+    max-width: 90%;
+
+    padding: 30px;
+
+    text-align: center;
+
+    background: white;
+
+    border-radius: 22px;
+
+    border: 5px solid #ffd84d;
+}
+
+.overlayBox h2 {
+    font-size: 40px;
+
+    margin-top: 0;
+
+    color: #e39b00;
+}
+
+.overlayButton {
+    display: block;
+
+    width: 100%;
+
+    padding: 14px;
+
+    margin: 10px 0;
+
+    border: none;
+
+    border-radius: 12px;
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.resumeButton {
+    background: #8ee86c;
+
+    color: #174d17;
+}
+
+.restartButton {
+    background: #ffd84d;
+
+    color: #563f00;
+}
+
+.backButton {
+    background: #e06b6b;
+
+    color: white;
+}
+
+.instructions {
+    margin-top: 15px;
+
+    color: #555;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     START SCREEN
+========================= -->
+
+<div id="startScreen">
+
+    <div class="startBox">
+
+        <h1 class="title">
+            SQUINKA FLAPPY
+        </h1>
+
+        <div class="squinkaBig">
+            🐱
+        </div>
+
+        <p>
+            Help Squinka fly through the pipes!
+        </p>
+
+        <p>
+            Press <b>SPACE</b> or <b>CLICK</b>
+            to flap.
+        </p>
+
+        <button
+            class="startButton"
+            id="startButton">
+
+            PLAY
+
+        </button>
+
+    </div>
+
+</div>
+
+<!-- =========================
+     GAME
+========================= -->
+
+<canvas id="gameCanvas"></canvas>
+
+<!-- =========================
+     HUD
+========================= -->
+
+<div id="hud" class="hidden">
+
+    <div id="score">
+        0
+    </div>
+
+    <div id="highScore">
+        High Score: 0
+    </div>
+
+    <button id="pauseButton">
+        ⏸ Pause
+    </button>
+
+</div>
+
+<!-- =========================
+     PAUSE SCREEN
+========================= -->
+
+<div
+    id="pauseScreen"
+    class="hidden">
+
+    <div class="overlayBox">
+
+        <h2>
+            ⏸ PAUSED
+        </h2>
+
+        <button
+            class="overlayButton resumeButton"
+            id="resumeButton">
+
+            Resume
+
+        </button>
+
+        <button
+            class="overlayButton backButton"
+            id="pauseBackButton">
+
+            Go back to Squinka website
+
+        </button>
+
+    </div>
+
+</div>
+
+<!-- =========================
+     GAME OVER
+========================= -->
+
+<div
+    id="gameOverScreen"
+    class="hidden">
+
+    <div class="overlayBox">
+
+        <h2>
+            💥 GAME OVER
+        </h2>
+
+        <p>
+            Score:
+            <b id="finalScore">0</b>
+        </p>
+
+        <p>
+            High Score:
+            <b id="finalHighScore">0</b>
+        </p>
+
+        <button
+            class="overlayButton restartButton"
+            id="restartButton">
+
+            🔄 Play Again
+
+        </button>
+
+        <button
+            class="overlayButton backButton"
+            id="gameOverBackButton">
+
+            Go back to Squinka website
+
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+/* =====================================================
+   CANVAS
+===================================================== */
+
+const canvas =
+    document.getElementById(
+        "gameCanvas"
+    );
+
+const ctx =
+    canvas.getContext("2d");
+
+let W =
+    window.innerWidth;
+
+let H =
+    window.innerHeight;
+
+canvas.width = W;
+canvas.height = H;
+
+window.addEventListener(
+    "resize",
+    function() {
+
+        W =
+            window.innerWidth;
+
+        H =
+            window.innerHeight;
+
+        canvas.width = W;
+        canvas.height = H;
+
+    }
+);
+
+/* =====================================================
+   GAME VARIABLES
+===================================================== */
+
+let gameRunning = false;
+
+let paused = false;
+
+let gameOver = false;
+
+let score = 0;
+
+let highScore =
+    Number(
+        localStorage.getItem(
+            "squinkaFlappyHighScore"
+        )
+    ) || 0;
+
+/* =====================================================
+   SQUINKA
+===================================================== */
+
+const squinka = {
+
+    x: 180,
+
+    y: 300,
+
+    width: 52,
+
+    height: 52,
+
+    velocity: 0,
+
+    gravity: 0.45,
+
+    flapPower: -8.5,
+
+    rotation: 0
+
+};
+
+/* =====================================================
+   PIPES
+===================================================== */
+
+let pipes = [];
+
+const pipeWidth = 80;
+
+const pipeGap = 190;
+
+let pipeSpeed = 3.2;
+
+let pipeTimer = 0;
+
+const pipeInterval = 1450;
+
+/* =====================================================
+   CLOUDS
+===================================================== */
+
+let clouds = [];
+
+for (
+    let i = 0;
+    i < 10;
+    i++
+) {
+
+    clouds.push({
+
+        x:
+            Math.random() * W,
+
+        y:
+            40 +
+            Math.random() * 250,
+
+        size:
+            30 +
+            Math.random() * 50,
+
+        speed:
+            0.2 +
+            Math.random() * 0.4
+
+    });
+
+}
+
+/* =====================================================
+   START GAME
+===================================================== */
+
+function startGame() {
+
+    gameRunning = true;
+
+    paused = false;
+
+    gameOver = false;
+
+    score = 0;
+
+    pipeTimer = 0;
+
+    pipes = [];
+
+    squinka.x = 180;
+
+    squinka.y =
+        H / 2;
+
+    squinka.velocity = 0;
+
+    squinka.rotation = 0;
+
+    document
+        .getElementById(
+            "startScreen"
+        )
+        .classList
+        .add("hidden");
+
+    document
+        .getElementById(
+            "gameOverScreen"
+        )
+        .classList
+        .add("hidden");
+
+    document
+        .getElementById(
+            "hud"
+        )
+        .classList
+        .remove("hidden");
+
+    updateHUD();
+
+}
+
+/* =====================================================
+   FLAP
+===================================================== */
+
+function flap() {
+
+    if (
+        !gameRunning ||
+        paused ||
+        gameOver
+    ) {
+
+        return;
+
+    }
+
+    squinka.velocity =
+        squinka.flapPower;
+
+}
+
+/* =====================================================
+   KEYBOARD
+===================================================== */
+
+window.addEventListener(
+    "keydown",
+    function(e) {
+
+        if (
+            e.code === "Space"
+        ) {
+
+            e.preventDefault();
+
+            if (
+                !gameRunning
+            ) {
+
+                startGame();
+
+            } else {
+
+                flap();
+
+            }
+
+        }
+
+        if (
+            e.key.toLowerCase()
+            === "p"
+        ) {
+
+            togglePause();
+
+        }
+
+    }
+);
+
+/* =====================================================
+   MOUSE / CLICK
+===================================================== */
+
+canvas.addEventListener(
+    "mousedown",
+    function() {
+
+        flap();
+
+    }
+);
+
+/* =====================================================
+   TOUCH
+===================================================== */
+
+canvas.addEventListener(
+    "touchstart",
+    function(e) {
+
+        e.preventDefault();
+
+        flap();
+
+    }
+);
+
+/* =====================================================
+   START BUTTON
+===================================================== */
+
+document
+    .getElementById(
+        "startButton"
+    )
+    .onclick = function() {
+
+        startGame();
+
+    };
+
+/* =====================================================
+   CREATE PIPE
+===================================================== */
+
+function createPipe() {
+
+    const minTop = 80;
+
+    const maxTop =
+        H -
+        pipeGap -
+        120;
+
+    const topHeight =
+        minTop +
+        Math.random() *
+        (
+            maxTop -
+            minTop
+        );
+
+    pipes.push({
+
+        x: W,
+
+        top:
+            topHeight,
+
+        bottom:
+            topHeight +
+            pipeGap,
+
+        passed: false
+
+    });
+
+}
+
+/* =====================================================
+   UPDATE
+===================================================== */
+
+function update() {
+
+    if (
+        !gameRunning ||
+        paused ||
+        gameOver
+    ) {
+
+        return;
+
+    }
+
+    /* =====================
+       SQUINKA PHYSICS
+    ===================== */
+
+    squinka.velocity +=
+        squinka.gravity;
+
+    squinka.y +=
+        squinka.velocity;
+
+    squinka.rotation =
+        Math.min(
+            1.1,
+            Math.max(
+                -0.5,
+                squinka.velocity *
+                0.08
+            )
+        );
+
+    /* =====================
+       PIPES
+    ===================== */
+
+    pipeTimer += 16.67;
+
+    if (
+        pipeTimer >=
+        pipeInterval
+    ) {
+
+        pipeTimer = 0;
+
+        createPipe();
+
+    }
+
+    for (
+        let i =
+            pipes.length - 1;
+
+        i >= 0;
+
+        i--
+    ) {
+
+        const pipe =
+            pipes[i];
+
+        pipe.x -=
+            pipeSpeed;
+
+        if (
+
+            !pipe.passed &&
+
+            pipe.x +
+                pipeWidth <
+                squinka.x
+
+        ) {
+
+            pipe.passed = true;
+
+            score++;
+
+            updateHUD();
+
+            /*
+               Slowly increase
+               difficulty.
+            */
+
+            if (
+                score % 5 === 0
+            ) {
+
+                pipeSpeed =
+                    Math.min(
+                        5.5,
+                        pipeSpeed +
+                        0.25
+                    );
+
+            }
+
+        }
+
+        if (
+            pipe.x +
+                pipeWidth <
+                0
+        ) {
+
+            pipes.splice(
+                i,
+                1
+            );
+
+        }
+
+    }
+
+    /* =====================
+       CLOUDS
+    ===================== */
+
+    for (
+        const cloud of clouds
+    ) {
+
+        cloud.x -=
+            cloud.speed;
+
+        if (
+            cloud.x <
+            -100
+        ) {
+
+            cloud.x =
+                W + 100;
+
+        }
+
+    }
+
+    /* =====================
+       COLLISION
+    ===================== */
+
+    checkCollision();
+
+}
+
+/* =====================================================
+   COLLISION
+===================================================== */
+
+function checkCollision() {
+
+    const left =
+        squinka.x -
+        squinka.width / 2;
+
+    const right =
+        squinka.x +
+        squinka.width / 2;
+
+    const top =
+        squinka.y -
+        squinka.height / 2;
+
+    const bottom =
+        squinka.y +
+        squinka.height / 2;
+
+    /* Ground */
+
+    if (
+        bottom >= H - 55
+    ) {
+
+        endGame();
+
+        return;
+
+    }
+
+    /* Ceiling */
+
+    if (
+        top <= 0
+    ) {
+
+        endGame();
+
+        return;
+
+    }
+
+    /* Pipes */
+
+    for (
+        const pipe of pipes
+    ) {
+
+        const pipeLeft =
+            pipe.x;
+
+        const pipeRight =
+            pipe.x +
+            pipeWidth;
+
+        if (
+
+            right >
+                pipeLeft &&
+
+            left <
+                pipeRight
+
+        ) {
+
+            if (
+
+                top <
+                    pipe.top ||
+
+                bottom >
+                    pipe.bottom
+
+            ) {
+
+                endGame();
+
+                return;
+
+            }
+
+        }
+
+    }
+
+}
+
+/* =====================================================
+   DRAW
+===================================================== */
+
+function draw() {
+
+    ctx.clearRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+    /* =====================
+       SKY
+    ===================== */
+
+    const sky =
+        ctx.createLinearGradient(
+            0,
+            0,
+            0,
+            H
+        );
+
+    sky.addColorStop(
+        0,
+        "#63cfff"
+    );
+
+    sky.addColorStop(
+        1,
+        "#d9f8ff"
+    );
+
+    ctx.fillStyle =
+        sky;
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+    /* =====================
+       CLOUDS
+    ===================== */
+
+    drawClouds();
+
+    /* =====================
+       PIPES
+    ===================== */
+
+    for (
+        const pipe of pipes
+    ) {
+
+        drawPipe(
+            pipe
+        );
+
+    }
+
+    /* =====================
+       GROUND
+    ===================== */
+
+    drawGround();
+
+    /* =====================
+       SQUINKA
+    ===================== */
+
+    drawSquinka();
+
+}
+
+/* =====================================================
+   CLOUDS
+===================================================== */
+
+function drawClouds() {
+
+    ctx.fillStyle =
+        "rgba(255,255,255,.85)";
+
+    for (
+        const cloud of clouds
+    ) {
+
+        ctx.beginPath();
+
+        ctx.arc(
+            cloud.x,
+            cloud.y,
+            cloud.size * .5,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.arc(
+            cloud.x +
+                cloud.size * .45,
+            cloud.y - 12,
+            cloud.size * .65,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.arc(
+            cloud.x +
+                cloud.size,
+            cloud.y,
+            cloud.size * .5,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+    }
+
+}
+
+/* =====================================================
+   PIPE DRAWING
+===================================================== */
+
+function drawPipe(pipe) {
+
+    /* Top pipe */
+
+    ctx.fillStyle =
+        "#55b94b";
+
+    ctx.fillRect(
+
+        pipe.x,
+        0,
+
+        pipeWidth,
+        pipe.top
+
+    );
+
+    /* Top pipe cap */
+
+    ctx.fillStyle =
+        "#43953b";
+
+    ctx.fillRect(
+
+        pipe.x - 8,
+
+        pipe.top - 25,
+
+        pipeWidth + 16,
+
+        25
+
+    );
+
+    /* Bottom pipe */
+
+    ctx.fillStyle =
+        "#55b94b";
+
+    ctx.fillRect(
+
+        pipe.x,
+        pipe.bottom,
+
+        pipeWidth,
+
+        H -
+        pipe.bottom -
+        55
+
+    );
+
+    /* Bottom cap */
+
+    ctx.fillStyle =
+        "#43953b";
+
+    ctx.fillRect(
+
+        pipe.x - 8,
+
+        pipe.bottom,
+
+        pipeWidth + 16,
+
+        25
+
+    );
+
+    /* Highlights */
+
+    ctx.fillStyle =
+        "rgba(255,255,255,.18)";
+
+    ctx.fillRect(
+
+        pipe.x + 12,
+        0,
+
+        10,
+        pipe.top - 25
+
+    );
+
+    ctx.fillRect(
+
+        pipe.x + 12,
+        pipe.bottom + 25,
+
+        10,
+
+        H -
+        pipe.bottom -
+        80
+
+    );
+
+}
+
+/* =====================================================
+   GROUND
+===================================================== */
+
+function drawGround() {
+
+    ctx.fillStyle =
+        "#8bd35e";
+
+    ctx.fillRect(
+
+        0,
+        H - 55,
+
+        W,
+        55
+
+    );
+
+    ctx.fillStyle =
+        "#63a943";
+
+    ctx.fillRect(
+
+        0,
+        H - 55,
+
+        W,
+        10
+
+    );
+
+    /* Ground pattern */
+
+    ctx.fillStyle =
+        "#70b94d";
+
+    for (
+        let x = 0;
+        x < W;
+        x += 35
+    ) {
+
+        ctx.fillRect(
+
+            x,
+            H - 35,
+
+            20,
+            8
+
+        );
+
+    }
+
+}
+
+/* =====================================================
+   DRAW SQUINKA
+===================================================== */
+
+function drawSquinka() {
+
+    ctx.save();
+
+    ctx.translate(
+
+        squinka.x,
+        squinka.y
+
+    );
+
+    ctx.rotate(
+        squinka.rotation
+    );
+
+    /* =====================
+       SHADOW
+    ===================== */
+
+    ctx.fillStyle =
+        "rgba(0,0,0,.18)";
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+
+        0,
+        28,
+
+        27,
+        9,
+
+        0,
+        0,
+        Math.PI * 2
+
+    );
+
+    ctx.fill();
+
+    /* =====================
+       WINGS
+    ===================== */
+
+    ctx.fillStyle =
+        "#fff2a8";
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+
+        -24,
+        5,
+
+        18,
+        9,
+
+        -0.3,
+        0,
+        Math.PI * 2
+
+    );
+
+    ctx.fill();
+
+    /* =====================
+       EARS
+    ===================== */
+
+    ctx.fillStyle =
+        "#ffd84d";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        -20,
+        -15
+    );
+
+    ctx.lineTo(
+        -17,
+        -40
+    );
+
+    ctx.lineTo(
+        -3,
+        -20
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        20,
+        -15
+    );
+
+    ctx.lineTo(
+        17,
+        -40
+    );
+
+    ctx.lineTo(
+        3,
+        -20
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+    /* =====================
+       BODY
+    ===================== */
+
+    ctx.fillStyle =
+        "#ffd84d";
+
+    ctx.beginPath();
+
+    ctx.arc(
+
+        0,
+        0,
+
+        27,
+
+        0,
+        Math.PI * 2
+
+    );
+
+    ctx.fill();
+
+    /* =====================
+       FACE
+    ===================== */
+
+    ctx.fillStyle =
+        "#222";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        -9,
+        -4,
+        3,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+    ctx.beginPath();
+
+    ctx.arc(
+        9,
+        -4,
+        3,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+    /* =====================
+       NOSE
+    ===================== */
+
+    ctx.fillStyle =
+        "#e98c9a";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        0,
+        5,
+        4,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+    /* =====================
+       TAIL
+    ===================== */
+
+    ctx.strokeStyle =
+        "#ffd84d";
+
+    ctx.lineWidth = 9;
+
+    ctx.lineCap =
+        "round";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        24,
+        12
+    );
+
+    ctx.quadraticCurveTo(
+
+        45,
+        25,
+
+        32,
+        39
+
+    );
+
+    ctx.stroke();
+
+    ctx.restore();
+
+}
+
+/* =====================================================
+   HUD
+===================================================== */
+
+function updateHUD() {
+
+    document
+        .getElementById(
+            "score"
+        )
+        .textContent =
+            score;
+
+    document
+        .getElementById(
+            "highScore"
+        )
+        .textContent =
+            "High Score: " +
+            highScore;
+
+}
+
+/* =====================================================
+   END GAME
+===================================================== */
+
+function endGame() {
+
+    if (
+        gameOver
+    ) {
+
+        return;
+
+    }
+
+    gameOver = true;
+
+    gameRunning = false;
+
+    if (
+        score > highScore
+    ) {
+
+        highScore =
+            score;
+
+        localStorage.setItem(
+
+            "squinkaFlappyHighScore",
+
+            highScore
+
+        );
+
+    }
+
+    document
+        .getElementById(
+            "finalScore"
+        )
+        .textContent =
+            score;
+
+    document
+        .getElementById(
+            "finalHighScore"
+        )
+        .textContent =
+            highScore;
+
+    document
+        .getElementById(
+            "gameOverScreen"
+        )
+        .classList
+        .remove("hidden");
+
+    updateHUD();
+
+}
+
+/* =====================================================
+   PAUSE
+===================================================== */
+
+function togglePause() {
+
+    if (
+        !gameRunning ||
+        gameOver
+    ) {
+
+        return;
+
+    }
+
+    paused =
+        !paused;
+
+    document
+        .getElementById(
+            "pauseScreen"
+        )
+        .classList
+        .toggle(
+            "hidden",
+            !paused
+        );
+
+}
+
+/* =========================
+   PAUSE BUTTON
+========================= */
+
+document
+    .getElementById(
+        "pauseButton"
+    )
+    .onclick = function() {
+
+        togglePause();
+
+    };
+
+/* =========================
+   RESUME
+========================= */
+
+document
+    .getElementById(
+        "resumeButton"
+    )
+    .onclick = function() {
+
+        paused = false;
+
+        document
+            .getElementById(
+                "pauseScreen"
+            )
+            .classList
+            .add("hidden");
+
+    };
+
+/* =====================================================
+   BACK TO SQUINKA WEBSITE
+===================================================== */
+
+function goBackToWebsite() {
+
+    window.location.href =
+        "index.html";
+
+}
+
+document
+    .getElementById(
+        "pauseBackButton"
+    )
+    .onclick =
+        goBackToWebsite;
+
+document
+    .getElementById(
+        "gameOverBackButton"
+    )
+    .onclick =
+        goBackToWebsite;
+
+/* =====================================================
+   RESTART
+===================================================== */
+
+document
+    .getElementById(
+        "restartButton"
+    )
+    .onclick = function() {
+
+        startGame();
+
+    };
+
+/* =====================================================
+   GAME LOOP
+===================================================== */
+
+let lastTime =
+    performance.now();
+
+function gameLoop(
+    currentTime
+) {
+
+    /*
+       We don't need to use the
+       exact frame time for this
+       simple game, which keeps
+       the controls consistent.
+    */
+
+    lastTime =
+        currentTime;
+
+    update();
+
+    draw();
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+}
+
+requestAnimationFrame(
+    gameLoop
+);
+
+/* =====================================================
+   INITIAL HUD
+===================================================== */
+
+updateHUD();
+
+</script>
+
+</body>
+</html>
+

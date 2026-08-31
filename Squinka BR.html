@@ -1,0 +1,5084 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Squinka Royale</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #111;
+    font-family: Arial, sans-serif;
+}
+
+canvas {
+    display: block;
+}
+
+/* =========================
+   START MENU
+========================= */
+
+#menu {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background:
+        radial-gradient(
+            circle,
+            #a9ef7d,
+            #4e9149 55%,
+            #16331b
+        );
+}
+
+.menuBox {
+    width: 520px;
+    max-width: 92%;
+
+    padding: 35px;
+
+    text-align: center;
+
+    color: white;
+
+    background: rgba(25, 45, 28, 0.96);
+
+    border: 4px solid #b1f58b;
+
+    border-radius: 25px;
+
+    box-shadow:
+        0 0 40px rgba(0,0,0,.5);
+}
+
+.title {
+    margin-top: 0;
+
+    font-size: 48px;
+
+    color: #d8ffb5;
+
+    text-shadow:
+        0 5px #285b2c;
+}
+
+#nickname {
+    width: 90%;
+
+    padding: 14px;
+
+    margin: 18px 0;
+
+    border: 2px solid #8fe36d;
+
+    border-radius: 12px;
+
+    text-align: center;
+
+    font-size: 18px;
+}
+
+.avatarChoices {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    margin: 15px 0 25px;
+}
+
+.avatarButton {
+    width: 68px;
+    height: 68px;
+
+    border: 4px solid transparent;
+
+    border-radius: 50%;
+
+    background: #426d3d;
+
+    font-size: 34px;
+
+    cursor: pointer;
+}
+
+.avatarButton.selected {
+    border-color: white;
+
+    box-shadow:
+        0 0 15px white;
+}
+
+#playButton {
+    width: 90%;
+
+    padding: 16px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    background: #91e86d;
+
+    color: #17351d;
+
+    font-size: 25px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+/* =========================
+   HUD
+========================= */
+
+#hud {
+    position: fixed;
+    inset: 0;
+
+    z-index: 20;
+
+    pointer-events: none;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#healthBox {
+    position: absolute;
+
+    left: 20px;
+    bottom: 20px;
+
+    width: 275px;
+
+    padding: 12px;
+
+    color: white;
+
+    background: rgba(0,0,0,.72);
+
+    border-radius: 15px;
+}
+
+.bar {
+    width: 100%;
+    height: 17px;
+
+    margin: 5px 0 8px;
+
+    background: #333;
+
+    overflow: hidden;
+
+    border-radius: 9px;
+}
+
+#healthBar {
+    width: 100%;
+    height: 100%;
+
+    background: #52df5c;
+}
+
+#shieldBar {
+    width: 25%;
+    height: 100%;
+
+    background: #4ba5ff;
+}
+
+#weaponBox {
+    position: absolute;
+
+    right: 20px;
+    bottom: 20px;
+
+    min-width: 290px;
+
+    padding: 14px 20px;
+
+    color: white;
+
+    text-align: right;
+
+    background: rgba(0,0,0,.72);
+
+    border-radius: 15px;
+}
+
+#weaponName {
+    font-size: 22px;
+
+    font-weight: bold;
+}
+
+#ammo {
+    font-size: 18px;
+}
+
+#reloadText {
+    color: #ffe66b;
+
+    font-weight: bold;
+}
+
+#killCounter,
+#aliveCounter {
+    position: absolute;
+
+    top: 20px;
+
+    padding: 10px 15px;
+
+    color: white;
+
+    background: rgba(0,0,0,.7);
+
+    border-radius: 12px;
+}
+
+#killCounter {
+    left: 20px;
+}
+
+#aliveCounter {
+    right: 20px;
+}
+
+#pauseButton {
+    position: absolute;
+
+    top: 65px;
+    right: 20px;
+
+    padding: 10px 18px;
+
+    pointer-events: auto;
+
+    border: none;
+
+    border-radius: 10px;
+
+    color: white;
+
+    background: rgba(0,0,0,.75);
+
+    cursor: pointer;
+}
+
+#controls {
+    position: absolute;
+
+    left: 50%;
+    bottom: 20px;
+
+    transform: translateX(-50%);
+
+    padding: 8px 15px;
+
+    color: white;
+
+    background: rgba(0,0,0,.55);
+
+    border-radius: 10px;
+
+    white-space: nowrap;
+}
+
+/* =========================
+   CROSSHAIR
+========================= */
+
+#crosshair {
+    position: fixed;
+
+    z-index: 50;
+
+    width: 24px;
+    height: 24px;
+
+    pointer-events: none;
+
+    transform:
+        translate(-50%, -50%);
+}
+
+#crosshair::before,
+#crosshair::after {
+    content: "";
+
+    position: absolute;
+
+    background: white;
+
+    box-shadow:
+        0 0 4px black;
+}
+
+#crosshair::before {
+    width: 24px;
+    height: 2px;
+
+    top: 11px;
+    left: 0;
+}
+
+#crosshair::after {
+    width: 2px;
+    height: 24px;
+
+    top: 0;
+    left: 11px;
+}
+
+/* =========================
+   PAUSE
+========================= */
+
+#pauseMenu,
+#gameOver {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 200;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    background: rgba(0,0,0,.72);
+}
+
+.overlayBox {
+    width: 430px;
+    max-width: 90%;
+
+    padding: 35px;
+
+    text-align: center;
+
+    color: white;
+
+    background: #263f2a;
+
+    border: 3px solid #9be878;
+
+    border-radius: 20px;
+}
+
+.overlayBox h2 {
+    margin-top: 0;
+
+    font-size: 40px;
+}
+
+.overlayButton {
+    width: 100%;
+
+    margin: 10px 0;
+
+    padding: 14px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.resume {
+    background: #91e86d;
+}
+
+.back {
+    color: white;
+
+    background: #db6262;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- =====================================================
+     START MENU
+===================================================== -->
+
+<div id="menu">
+
+    <div class="menuBox">
+
+        <h1 class="title">
+            🐱 SQUINKA ROYALE
+        </h1>
+
+        <p>
+            Be the last Squinka standing!
+        </p>
+
+        <input
+            id="nickname"
+            maxlength="16"
+            placeholder="Enter your nickname"
+        >
+
+        <p>
+            Choose your Squinka
+        </p>
+
+        <div class="avatarChoices">
+
+            <button
+                class="avatarButton selected"
+                data-avatar="🐱">
+                🐱
+            </button>
+
+            <button
+                class="avatarButton"
+                data-avatar="😺">
+                😺
+            </button>
+
+            <button
+                class="avatarButton"
+                data-avatar="😸">
+                😸
+            </button>
+
+            <button
+                class="avatarButton"
+                data-avatar="😼">
+                😼
+            </button>
+
+            <button
+                class="avatarButton"
+                data-avatar="😹">
+                😹
+            </button>
+
+        </div>
+
+        <button id="playButton">
+            PLAY
+        </button>
+
+    </div>
+
+</div>
+
+<!-- =====================================================
+     GAME
+===================================================== -->
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="crosshair"></div>
+
+<!-- =====================================================
+     HUD
+===================================================== -->
+
+<div id="hud" class="hidden">
+
+    <div id="killCounter">
+        💥 Kills:
+        <span id="kills">0</span>
+    </div>
+
+    <div id="aliveCounter">
+        👥 Alive:
+        <span id="alive">1</span>
+    </div>
+
+    <button id="pauseButton">
+        ⏸ Pause
+    </button>
+
+    <div id="healthBox">
+
+        ❤️ Health
+
+        <div class="bar">
+            <div id="healthBar"></div>
+        </div>
+
+        🛡️ Shield
+
+        <div class="bar">
+            <div id="shieldBar"></div>
+        </div>
+
+        💊 Medkits:
+        <span id="medkits">1</span>
+
+    </div>
+
+    <div id="weaponBox">
+
+        <div id="weaponName">
+            No Weapon
+        </div>
+
+        <div>
+            Magazine:
+            <span id="currentAmmo">0</span>
+        </div>
+
+        <div>
+            🔴 Pistol Ammo:
+            <span id="pistolAmmo">0</span>
+        </div>
+
+        <div>
+            🟡 Rifle Ammo:
+            <span id="rifleAmmo">0</span>
+        </div>
+
+        <div id="reloadText"></div>
+
+    </div>
+
+    <div id="controls">
+        WASD = Move |
+        Mouse = Aim |
+        Left Click = Shoot |
+        E = Open Chest |
+        R = Reload |
+        H = Heal
+    </div>
+
+</div>
+
+<!-- =====================================================
+     PAUSE
+===================================================== -->
+
+<div id="pauseMenu" class="hidden">
+
+    <div class="overlayBox">
+
+        <h2>⏸ PAUSED</h2>
+
+        <button
+            class="overlayButton resume"
+            id="resumeButton">
+            Resume
+        </button>
+
+        <button
+            class="overlayButton back"
+            id="backButton">
+            Go back to Squinka website
+        </button>
+
+    </div>
+
+</div>
+
+<!-- =====================================================
+     GAME OVER
+===================================================== -->
+
+<div id="gameOver" class="hidden">
+
+    <div class="overlayBox">
+
+        <h2 id="gameOverTitle">
+            GAME OVER
+        </h2>
+
+        <p id="gameOverText"></p>
+
+        <button
+            class="overlayButton resume"
+            id="restartButton">
+            Play Again
+        </button>
+
+        <button
+            class="overlayButton back"
+            id="gameOverBack">
+            Go back to Squinka website
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+/* =====================================================
+   CANVAS
+===================================================== */
+
+const canvas =
+    document.getElementById("gameCanvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+let W = window.innerWidth;
+let H = window.innerHeight;
+
+canvas.width = W;
+canvas.height = H;
+
+window.addEventListener(
+    "resize",
+    function() {
+
+        W = window.innerWidth;
+        H = window.innerHeight;
+
+        canvas.width = W;
+        canvas.height = H;
+
+    }
+);
+
+/* =====================================================
+   WORLD
+===================================================== */
+
+const WORLD_WIDTH = 3600;
+const WORLD_HEIGHT = 2600;
+
+let buildings = [];
+let cars = [];
+let chests = [];
+
+let bullets = [];
+let particles = [];
+let bots = [];
+
+let camera = {
+    x: 0,
+    y: 0
+};
+
+/* =====================================================
+   GAME STATE
+===================================================== */
+
+let gameRunning = false;
+let paused = false;
+
+/* =====================================================
+   PLAYER
+===================================================== */
+
+const player = {
+
+    x: WORLD_WIDTH / 2,
+    y: WORLD_HEIGHT / 2,
+
+    radius: 25,
+
+    speed: 4.5,
+
+    health: 100,
+
+    shield: 25,
+
+    name: "Squinka",
+
+    avatar: "🐱",
+
+    /*
+       The player starts with
+       NO WEAPON.
+    */
+
+    weapon: null,
+
+    pistolAmmo: 0,
+
+    rifleAmmo: 0,
+
+    pistolLoaded: 0,
+
+    rifleLoaded: 0,
+
+    medkits: 1,
+
+    kills: 0,
+
+    shootCooldown: 0,
+
+    reloadTimer: 0,
+
+    reloading: false
+
+};
+
+/* =====================================================
+   WEAPONS
+===================================================== */
+
+const weapons = {
+
+    pistol: {
+
+        name: "🔴 Pistol",
+
+        damage: 20,
+
+        bulletSpeed: 15,
+
+        fireRate: 280,
+
+        /*
+           Pistol bullet:
+           disappears after 2 seconds.
+        */
+
+        lifetime: 2000,
+
+        magazine: 12,
+
+        reloadTime: 900
+
+    },
+
+    rifle: {
+
+        name: "🟡 Rifle",
+
+        damage: 15,
+
+        bulletSpeed: 18,
+
+        fireRate: 450,
+
+        /*
+           Rifle bullet:
+           disappears after 4 seconds.
+        */
+
+        lifetime: 4000,
+
+        magazine: 30,
+
+        reloadTime: 1700
+
+    }
+
+};
+
+/* =====================================================
+   INPUT
+===================================================== */
+
+const keys = {};
+
+const mouse = {
+
+    x: W / 2,
+
+    y: H / 2,
+
+    down: false
+
+};
+
+window.addEventListener(
+    "keydown",
+    function(e) {
+
+        const key =
+            e.key.toLowerCase();
+
+        keys[key] = true;
+
+        if (
+            key === " " ||
+            key.startsWith("arrow")
+        ) {
+
+            e.preventDefault();
+
+        }
+
+        if (key === "e") {
+
+            openNearestChest();
+
+        }
+
+        if (key === "r") {
+
+            startReload();
+
+        }
+
+        if (key === "h") {
+
+            useMedkit();
+
+        }
+
+        if (
+            key === "escape" &&
+            gameRunning
+        ) {
+
+            paused = !paused;
+
+            updatePauseMenu();
+
+        }
+
+    }
+);
+
+window.addEventListener(
+    "keyup",
+    function(e) {
+
+        keys[
+            e.key.toLowerCase()
+        ] = false;
+
+    }
+);
+
+/* =====================================================
+   MOUSE
+===================================================== */
+
+window.addEventListener(
+    "mousemove",
+    function(e) {
+
+        /*
+           IMPORTANT:
+
+           These are the actual SCREEN
+           mouse coordinates.
+
+           We do NOT rotate the mouse
+           or clamp it to an angle.
+        */
+
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+
+        const crosshair =
+            document.getElementById(
+                "crosshair"
+            );
+
+        crosshair.style.left =
+            mouse.x + "px";
+
+        crosshair.style.top =
+            mouse.y + "px";
+
+    }
+);
+
+window.addEventListener(
+    "mousedown",
+    function(e) {
+
+        if (e.button === 0) {
+
+            mouse.down = true;
+
+        }
+
+    }
+);
+
+window.addEventListener(
+    "mouseup",
+    function(e) {
+
+        if (e.button === 0) {
+
+            mouse.down = false;
+
+        }
+
+    }
+);
+
+/* =====================================================
+   AVATAR SELECTION
+===================================================== */
+
+let selectedAvatar = "🐱";
+
+document
+    .querySelectorAll(".avatarButton")
+    .forEach(
+        function(button) {
+
+            button.addEventListener(
+                "click",
+                function() {
+
+                    document
+                        .querySelectorAll(
+                            ".avatarButton"
+                        )
+                        .forEach(
+                            function(b) {
+
+                                b.classList
+                                    .remove(
+                                        "selected"
+                                    );
+
+                            }
+                        );
+
+                    button.classList.add(
+                        "selected"
+                    );
+
+                    selectedAvatar =
+                        button.dataset.avatar;
+
+                }
+            );
+
+        }
+    );
+
+/* =====================================================
+   PLAY
+===================================================== */
+
+document
+    .getElementById("playButton")
+    .addEventListener(
+        "click",
+        function() {
+
+            const name =
+                document
+                    .getElementById(
+                        "nickname"
+                    )
+                    .value
+                    .trim();
+
+            player.name =
+                name || "Squinka";
+
+            player.avatar =
+                selectedAvatar;
+
+            document
+                .getElementById("menu")
+                .classList
+                .add("hidden");
+
+            document
+                .getElementById("hud")
+                .classList
+                .remove("hidden");
+
+            startGame();
+
+        }
+    );
+
+/* =====================================================
+   START GAME
+===================================================== */
+
+function startGame() {
+
+    player.x =
+        WORLD_WIDTH / 2;
+
+    player.y =
+        WORLD_HEIGHT / 2;
+
+    player.health = 100;
+
+    player.shield = 25;
+
+    /*
+       NO STARTING GUN.
+    */
+
+    player.weapon = null;
+
+    player.pistolAmmo = 0;
+
+    player.rifleAmmo = 0;
+
+    player.pistolLoaded = 0;
+
+    player.rifleLoaded = 0;
+
+    player.medkits = 1;
+
+    player.kills = 0;
+
+    player.shootCooldown = 0;
+
+    player.reloadTimer = 0;
+
+    player.reloading = false;
+
+    bullets = [];
+
+    particles = [];
+
+    bots = [];
+
+    generateMap();
+
+    generateBots();
+
+    gameRunning = true;
+
+    paused = false;
+
+    document
+        .getElementById("gameOver")
+        .classList
+        .add("hidden");
+
+    updatePauseMenu();
+
+    updateCamera();
+
+    updateHUD();
+
+}
+
+/* =====================================================
+   MAP
+===================================================== */
+
+function generateMap() {
+
+    buildings = [];
+
+    cars = [];
+
+    chests = [];
+
+    const buildingLocations = [
+
+        [400,350,350,230],
+
+        [1050,300,400,260],
+
+        [1800,350,430,260],
+
+        [2700,300,420,280],
+
+        [350,1050,430,260],
+
+        [1100,900,350,250],
+
+        [1850,1000,450,300],
+
+        [2750,900,400,250],
+
+        [500,1800,400,250],
+
+        [1250,1700,450,280],
+
+        [2100,1750,400,260],
+
+        [2850,1800,430,270]
+
+    ];
+
+    for (
+        const b of buildingLocations
+    ) {
+
+        buildings.push({
+
+            x: b[0],
+
+            y: b[1],
+
+            w: b[2],
+
+            h: b[3]
+
+        });
+
+    }
+
+    /* =====================
+       CARS
+    ===================== */
+
+    for (
+        let i = 0;
+        i < 35;
+        i++
+    ) {
+
+        let x;
+        let y;
+
+        do {
+
+            x =
+                150 +
+                Math.random() *
+                (WORLD_WIDTH - 300);
+
+            y =
+                150 +
+                Math.random() *
+                (WORLD_HEIGHT - 300);
+
+        } while (
+            insideObstacle(x,y)
+        );
+
+        cars.push({
+
+            x: x,
+
+            y: y,
+
+            w: 75,
+
+            h: 40,
+
+            rotation:
+                Math.random() *
+                Math.PI * 2
+
+        });
+
+    }
+
+    /* =====================
+       CHESTS
+    ===================== */
+
+    for (
+        let i = 0;
+        i < 65;
+        i++
+    ) {
+
+        let x;
+        let y;
+
+        do {
+
+            x =
+                100 +
+                Math.random() *
+                (WORLD_WIDTH - 200);
+
+            y =
+                100 +
+                Math.random() *
+                (WORLD_HEIGHT - 200);
+
+        } while (
+            insideObstacle(x,y)
+        );
+
+        chests.push({
+
+            x: x,
+
+            y: y,
+
+            opened: false,
+
+            item: randomLoot()
+
+        });
+
+    }
+
+}
+
+/* =====================================================
+   LOOT
+===================================================== */
+
+function randomLoot() {
+
+    const r =
+        Math.random();
+
+    /*
+       PISTOL = MUCH MORE COMMON
+
+       RIFLE = RARE
+    */
+
+    if (r < 0.40) {
+
+        return "pistol";
+
+    }
+
+    if (r < 0.47) {
+
+        return "rifle";
+
+    }
+
+    if (r < 0.68) {
+
+        return "pistolAmmo";
+
+    }
+
+    if (r < 0.80) {
+
+        return "rifleAmmo";
+
+    }
+
+    if (r < 0.95) {
+
+        return "medkit";
+
+    }
+
+    return "shield";
+
+}
+
+/* =====================================================
+   BOTS
+===================================================== */
+
+function generateBots() {
+
+    const names = [
+
+        "Mango",
+        "Boba",
+        "Noodle",
+        "Fluffy",
+        "Mochi",
+        "Pickle",
+        "Bean",
+        "Waffles",
+        "Cookie",
+        "Pumpkin",
+        "Snowball",
+        "Puff",
+        "Tofu",
+        "Cheese",
+        "Coco",
+        "Biscuit",
+        "Kiwi",
+        "Pepper",
+        "Peanut",
+        "Taco",
+        "Churro",
+        "Sushi",
+        "Berry",
+        "Cloud",
+        "Marshmallow"
+
+    ];
+
+    for (
+        let i = 0;
+        i < 25;
+        i++
+    ) {
+
+        let x;
+        let y;
+
+        do {
+
+            x =
+                100 +
+                Math.random() *
+                (WORLD_WIDTH - 200);
+
+            y =
+                100 +
+                Math.random() *
+                (WORLD_HEIGHT - 200);
+
+        } while (
+
+            insideObstacle(x,y) ||
+
+            distance(
+                x,
+                y,
+                player.x,
+                player.y
+            ) < 400
+
+        );
+
+        bots.push({
+
+            x: x,
+
+            y: y,
+
+            radius: 23,
+
+            health: 100,
+
+            shield:
+                Math.random() < .35
+                    ? 25
+                    : 0,
+
+            speed:
+                2.1 +
+                Math.random() * .7,
+
+            name:
+                names[
+                    i %
+                    names.length
+                ],
+
+            avatar:
+
+                [
+                    "🐱",
+                    "😺",
+                    "😸",
+                    "😼",
+                    "😹"
+                ][
+                    Math.floor(
+                        Math.random() * 5
+                    )
+                ],
+
+            weapon: null,
+
+            pistolAmmo: 0,
+
+            rifleAmmo: 0,
+
+            pistolLoaded: 0,
+
+            rifleLoaded: 0,
+
+            medkits:
+                Math.random() < .45
+                    ? 1
+                    : 0,
+
+            target: null,
+
+            targetChest: null,
+
+            direction:
+                Math.random() *
+                Math.PI * 2,
+
+            shootCooldown: 0,
+
+            reloadTimer: 0,
+
+            reloading: false,
+
+            thinkTimer: 0,
+
+            alive: true
+
+        });
+
+    }
+
+}
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function distance(
+    x1,
+    y1,
+    x2,
+    y2
+) {
+
+    return Math.hypot(
+        x2 - x1,
+        y2 - y1
+    );
+
+}
+
+function clamp(
+    value,
+    min,
+    max
+) {
+
+    return Math.max(
+        min,
+        Math.min(
+            max,
+            value
+        )
+    );
+
+}
+
+function insideObstacle(
+    x,
+    y
+) {
+
+    for (
+        const b of buildings
+    ) {
+
+        if (
+
+            x >
+                b.x - 25 &&
+
+            x <
+                b.x +
+                b.w +
+                25 &&
+
+            y >
+                b.y - 25 &&
+
+            y <
+                b.y +
+                b.h +
+                25
+
+        ) {
+
+            return true;
+
+        }
+
+    }
+
+    for (
+        const c of cars
+    ) {
+
+        if (
+
+            Math.abs(
+                x - c.x
+            ) <
+            c.w / 2 + 20 &&
+
+            Math.abs(
+                y - c.y
+            ) <
+            c.h / 2 + 20
+
+        ) {
+
+            return true;
+
+        }
+
+    }
+
+    return false;
+
+}
+
+function insideBuilding(
+    x,
+    y
+) {
+
+    for (
+        const b of buildings
+    ) {
+
+        if (
+
+            x >= b.x &&
+
+            x <=
+                b.x + b.w &&
+
+            y >= b.y &&
+
+            y <=
+                b.y + b.h
+
+        ) {
+
+            return true;
+
+        }
+
+    }
+
+    return false;
+
+}
+
+/* =====================================================
+   COLLISION
+===================================================== */
+
+function collides(entity) {
+
+    for (
+        const b of buildings
+    ) {
+
+        if (
+
+            entity.x +
+                entity.radius >
+                b.x &&
+
+            entity.x -
+                entity.radius <
+                b.x + b.w &&
+
+            entity.y +
+                entity.radius >
+                b.y &&
+
+            entity.y -
+                entity.radius <
+                b.y + b.h
+
+        ) {
+
+            return true;
+
+        }
+
+    }
+
+    for (
+        const c of cars
+    ) {
+
+        if (
+
+            Math.abs(
+                entity.x - c.x
+            ) <
+            c.w / 2 +
+            entity.radius &&
+
+            Math.abs(
+                entity.y - c.y
+            ) <
+            c.h / 2 +
+            entity.radius
+
+        ) {
+
+            return true;
+
+        }
+
+    }
+
+    return false;
+
+}
+
+/* =====================================================
+   MOVEMENT
+===================================================== */
+
+function moveEntity(
+    entity,
+    dx,
+    dy
+) {
+
+    const oldX =
+        entity.x;
+
+    const oldY =
+        entity.y;
+
+    entity.x += dx;
+
+    if (
+        collides(entity)
+    ) {
+
+        entity.x =
+            oldX;
+
+    }
+
+    entity.y += dy;
+
+    if (
+        collides(entity)
+    ) {
+
+        entity.y =
+            oldY;
+
+    }
+
+    entity.x =
+        clamp(
+            entity.x,
+            entity.radius,
+            WORLD_WIDTH -
+                entity.radius
+        );
+
+    entity.y =
+        clamp(
+            entity.y,
+            entity.radius,
+            WORLD_HEIGHT -
+                entity.radius
+        );
+
+}
+
+/* =====================================================
+   PLAYER UPDATE
+===================================================== */
+
+function updatePlayer(dt) {
+
+    let dx = 0;
+    let dy = 0;
+
+    if (
+        keys["w"] ||
+        keys["arrowup"]
+    ) {
+
+        dy--;
+
+    }
+
+    if (
+        keys["s"] ||
+        keys["arrowdown"]
+    ) {
+
+        dy++;
+
+    }
+
+    if (
+        keys["a"] ||
+        keys["arrowleft"]
+    ) {
+
+        dx--;
+
+    }
+
+    if (
+        keys["d"] ||
+        keys["arrowright"]
+    ) {
+
+        dx++;
+
+    }
+
+    if (
+        dx !== 0 ||
+        dy !== 0
+    ) {
+
+        const length =
+            Math.hypot(
+                dx,
+                dy
+            );
+
+        dx /= length;
+        dy /= length;
+
+        moveEntity(
+
+            player,
+
+            dx *
+                player.speed,
+
+            dy *
+                player.speed
+
+        );
+
+    }
+
+    player.shootCooldown -= dt;
+
+    if (
+        player.reloading
+    ) {
+
+        player.reloadTimer -= dt;
+
+        if (
+            player.reloadTimer <= 0
+        ) {
+
+            finishReload();
+
+        }
+
+    }
+
+    if (
+
+        mouse.down &&
+
+        player.shootCooldown <= 0 &&
+
+        !player.reloading
+
+    ) {
+
+        shootPlayer();
+
+    }
+
+}
+
+/* =====================================================
+   ⭐ TRUE 360° MOUSE AIM ⭐
+===================================================== */
+
+function getAimAngle() {
+
+    /*
+       STEP 1:
+
+       Find the player's position
+       ON THE SCREEN.
+
+       Camera moves the world, so:
+
+       screenX =
+       worldX - cameraX
+
+       screenY =
+       worldY - cameraY
+    */
+
+    const playerScreenX =
+        player.x -
+        camera.x;
+
+    const playerScreenY =
+        player.y -
+        camera.y;
+
+    /*
+       STEP 2:
+
+       Find the difference between
+       the mouse and the player.
+    */
+
+    const dx =
+        mouse.x -
+        playerScreenX;
+
+    const dy =
+        mouse.y -
+        playerScreenY;
+
+    /*
+       STEP 3:
+
+       atan2 gives a COMPLETE
+       360 DEGREE angle.
+
+       It can point:
+
+       RIGHT
+       LEFT
+       UP
+       DOWN
+
+       and EVERY angle between them.
+    */
+
+    return Math.atan2(
+        dy,
+        dx
+    );
+
+}
+
+/* =====================================================
+   PLAYER SHOOT
+===================================================== */
+
+function shootPlayer() {
+
+    if (
+        !player.weapon
+    ) {
+
+        return;
+
+    }
+
+    const weapon =
+        weapons[
+            player.weapon
+        ];
+
+    let loaded = 0;
+
+    if (
+        player.weapon ===
+        "pistol"
+    ) {
+
+        loaded =
+            player.pistolLoaded;
+
+    } else {
+
+        loaded =
+            player.rifleLoaded;
+
+    }
+
+    if (
+        loaded <= 0
+    ) {
+
+        startReload();
+
+        return;
+
+    }
+
+    /*
+       ⭐ EXACT SAME ANGLE USED
+       BY THE GUN AND BULLET.
+    */
+
+    const angle =
+        getAimAngle();
+
+    if (
+        player.weapon ===
+        "pistol"
+    ) {
+
+        player.pistolLoaded--;
+
+    } else {
+
+        player.rifleLoaded--;
+
+    }
+
+    /*
+       Start bullet slightly in
+       front of the Squinka.
+    */
+
+    const startDistance =
+        player.radius + 12;
+
+    bullets.push({
+
+        x:
+            player.x +
+            Math.cos(angle) *
+            startDistance,
+
+        y:
+            player.y +
+            Math.sin(angle) *
+            startDistance,
+
+        startX:
+            player.x,
+
+        startY:
+            player.y,
+
+        vx:
+            Math.cos(angle) *
+            weapon.bulletSpeed,
+
+        vy:
+            Math.sin(angle) *
+            weapon.bulletSpeed,
+
+        owner: player,
+
+        baseDamage:
+            weapon.damage,
+
+        created:
+            performance.now(),
+
+        lifetime:
+            weapon.lifetime,
+
+        weapon:
+            player.weapon
+
+    });
+
+    player.shootCooldown =
+        weapon.fireRate;
+
+}
+
+/* =====================================================
+   RELOAD
+===================================================== */
+
+function startReload() {
+
+    if (
+
+        !gameRunning ||
+
+        paused ||
+
+        player.reloading ||
+
+        !player.weapon
+
+    ) {
+
+        return;
+
+    }
+
+    const weapon =
+        weapons[
+            player.weapon
+        ];
+
+    let reserve;
+    let loaded;
+
+    if (
+        player.weapon ===
+        "pistol"
+    ) {
+
+        reserve =
+            player.pistolAmmo;
+
+        loaded =
+            player.pistolLoaded;
+
+    } else {
+
+        reserve =
+            player.rifleAmmo;
+
+        loaded =
+            player.rifleLoaded;
+
+    }
+
+    if (
+
+        reserve <= 0 ||
+
+        loaded >=
+            weapon.magazine
+
+    ) {
+
+        return;
+
+    }
+
+    player.reloading = true;
+
+    player.reloadTimer =
+        weapon.reloadTime;
+
+}
+
+function finishReload() {
+
+    if (
+        !player.weapon
+    ) {
+
+        return;
+
+    }
+
+    const weapon =
+        weapons[
+            player.weapon
+        ];
+
+    if (
+        player.weapon ===
+        "pistol"
+    ) {
+
+        const needed =
+            weapon.magazine -
+            player.pistolLoaded;
+
+        const amount =
+            Math.min(
+                needed,
+                player.pistolAmmo
+            );
+
+        player.pistolLoaded +=
+            amount;
+
+        player.pistolAmmo -=
+            amount;
+
+    } else {
+
+        const needed =
+            weapon.magazine -
+            player.rifleLoaded;
+
+        const amount =
+            Math.min(
+                needed,
+                player.rifleAmmo
+            );
+
+        player.rifleLoaded +=
+            amount;
+
+        player.rifleAmmo -=
+            amount;
+
+    }
+
+    player.reloading = false;
+
+}
+
+/* =====================================================
+   BOT AI
+===================================================== */
+
+function updateBots(dt) {
+
+    for (
+        const bot of bots
+    ) {
+
+        if (
+            !bot.alive
+        ) {
+
+            continue;
+
+        }
+
+        bot.shootCooldown -= dt;
+
+        bot.thinkTimer -= dt;
+
+        if (
+            bot.reloading
+        ) {
+
+            bot.reloadTimer -= dt;
+
+            if (
+                bot.reloadTimer <= 0
+            ) {
+
+                finishBotReload(
+                    bot
+                );
+
+            }
+
+        }
+
+        if (
+            bot.thinkTimer <= 0
+        ) {
+
+            bot.thinkTimer =
+                400 +
+                Math.random() *
+                700;
+
+            bot.target =
+                findNearestEnemy(
+                    bot
+                );
+
+            bot.targetChest =
+                findNearestChest(
+                    bot
+                );
+
+        }
+
+        /* HEAL */
+
+        if (
+
+            bot.health < 45 &&
+
+            bot.medkits > 0
+
+        ) {
+
+            bot.health =
+                Math.min(
+                    100,
+                    bot.health + 40
+                );
+
+            bot.medkits--;
+
+        }
+
+        /*
+           Search for weapon.
+        */
+
+        if (
+            !bot.weapon
+        ) {
+
+            if (
+                bot.targetChest
+            ) {
+
+                moveToward(
+
+                    bot,
+
+                    bot.targetChest.x,
+
+                    bot.targetChest.y
+
+                );
+
+                if (
+
+                    distance(
+
+                        bot.x,
+                        bot.y,
+
+                        bot.targetChest.x,
+                        bot.targetChest.y
+
+                    ) < 45
+
+                ) {
+
+                    lootChestBot(
+
+                        bot,
+
+                        bot.targetChest
+
+                    );
+
+                }
+
+            } else {
+
+                wanderBot(bot);
+
+            }
+
+            continue;
+
+        }
+
+        /*
+           Fight enemies.
+        */
+
+        if (
+            bot.target
+        ) {
+
+            const target =
+                bot.target;
+
+            const d =
+                distance(
+
+                    bot.x,
+                    bot.y,
+
+                    target.x,
+                    target.y
+
+                );
+
+            if (
+                d < 750
+            ) {
+
+                if (
+                    hasLineOfSight(
+
+                        bot.x,
+                        bot.y,
+
+                        target.x,
+                        target.y
+
+                    )
+                ) {
+
+                    if (
+                        d > 300
+                    ) {
+
+                        moveToward(
+
+                            bot,
+
+                            target.x,
+                            target.y
+
+                        );
+
+                    }
+
+                    if (
+                        d < 130
+                    ) {
+
+                        moveAwayFrom(
+
+                            bot,
+
+                            target.x,
+                            target.y
+
+                        );
+
+                    }
+
+                    if (
+
+                        bot.shootCooldown <= 0 &&
+
+                        !bot.reloading
+
+                    ) {
+
+                        shootBot(
+
+                            bot,
+
+                            target
+
+                        );
+
+                    }
+
+                } else {
+
+                    moveToward(
+
+                        bot,
+
+                        target.x,
+                        target.y
+
+                    );
+
+                }
+
+            }
+
+        } else {
+
+            wanderBot(bot);
+
+        }
+
+    }
+
+}
+
+/* =====================================================
+   BOT MOVEMENT
+===================================================== */
+
+function moveToward(
+    bot,
+    x,
+    y
+) {
+
+    const dx =
+        x - bot.x;
+
+    const dy =
+        y - bot.y;
+
+    const length =
+        Math.hypot(
+            dx,
+            dy
+        );
+
+    if (
+        length === 0
+    ) {
+
+        return;
+
+    }
+
+    moveEntity(
+
+        bot,
+
+        dx / length *
+            bot.speed,
+
+        dy / length *
+            bot.speed
+
+    );
+
+}
+
+function moveAwayFrom(
+    bot,
+    x,
+    y
+) {
+
+    const dx =
+        bot.x - x;
+
+    const dy =
+        bot.y - y;
+
+    const length =
+        Math.hypot(
+            dx,
+            dy
+        );
+
+    if (
+        length === 0
+    ) {
+
+        return;
+
+    }
+
+    moveEntity(
+
+        bot,
+
+        dx / length *
+            bot.speed,
+
+        dy / length *
+            bot.speed
+
+    );
+
+}
+
+function wanderBot(bot) {
+
+    if (
+        Math.random() < .02
+    ) {
+
+        bot.direction =
+            Math.random() *
+            Math.PI * 2;
+
+    }
+
+    moveEntity(
+
+        bot,
+
+        Math.cos(
+            bot.direction
+        ) *
+        bot.speed,
+
+        Math.sin(
+            bot.direction
+        ) *
+        bot.speed
+
+    );
+
+}
+
+/* =====================================================
+   BOT SHOOTING
+===================================================== */
+
+function shootBot(
+    bot,
+    target
+) {
+
+    if (
+        !bot.weapon
+    ) {
+
+        return;
+
+    }
+
+    const weapon =
+        weapons[
+            bot.weapon
+        ];
+
+    let loaded;
+
+    if (
+        bot.weapon ===
+        "pistol"
+    ) {
+
+        loaded =
+            bot.pistolLoaded;
+
+    } else {
+
+        loaded =
+            bot.rifleLoaded;
+
+    }
+
+    if (
+        loaded <= 0
+    ) {
+
+        startBotReload(
+            bot
+        );
+
+        return;
+
+    }
+
+    const angle =
+        Math.atan2(
+
+            target.y -
+                bot.y,
+
+            target.x -
+                bot.x
+
+        );
+
+    if (
+        bot.weapon ===
+        "pistol"
+    ) {
+
+        bot.pistolLoaded--;
+
+    } else {
+
+        bot.rifleLoaded--;
+
+    }
+
+    bullets.push({
+
+        x:
+            bot.x +
+            Math.cos(angle) *
+            32,
+
+        y:
+            bot.y +
+            Math.sin(angle) *
+            32,
+
+        startX:
+            bot.x,
+
+        startY:
+            bot.y,
+
+        vx:
+            Math.cos(angle) *
+            weapon.bulletSpeed,
+
+        vy:
+            Math.sin(angle) *
+            weapon.bulletSpeed,
+
+        owner: bot,
+
+        baseDamage:
+            weapon.damage,
+
+        created:
+            performance.now(),
+
+        lifetime:
+            weapon.lifetime,
+
+        weapon:
+            bot.weapon
+
+    });
+
+    bot.shootCooldown =
+        weapon.fireRate +
+        Math.random() *
+        250;
+
+}
+
+/* =====================================================
+   BOT RELOAD
+===================================================== */
+
+function startBotReload(
+    bot
+) {
+
+    if (
+
+        bot.reloading ||
+
+        !bot.weapon
+
+    ) {
+
+        return;
+
+    }
+
+    const weapon =
+        weapons[
+            bot.weapon
+        ];
+
+    let reserve;
+    let loaded;
+
+    if (
+        bot.weapon ===
+        "pistol"
+    ) {
+
+        reserve =
+            bot.pistolAmmo;
+
+        loaded =
+            bot.pistolLoaded;
+
+    } else {
+
+        reserve =
+            bot.rifleAmmo;
+
+        loaded =
+            bot.rifleLoaded;
+
+    }
+
+    if (
+
+        reserve <= 0 ||
+
+        loaded >=
+            weapon.magazine
+
+    ) {
+
+        return;
+
+    }
+
+    bot.reloading = true;
+
+    bot.reloadTimer =
+        weapon.reloadTime;
+
+}
+
+function finishBotReload(
+    bot
+) {
+
+    const weapon =
+        weapons[
+            bot.weapon
+        ];
+
+    if (
+        bot.weapon ===
+        "pistol"
+    ) {
+
+        const needed =
+            weapon.magazine -
+            bot.pistolLoaded;
+
+        const amount =
+            Math.min(
+                needed,
+                bot.pistolAmmo
+            );
+
+        bot.pistolLoaded +=
+            amount;
+
+        bot.pistolAmmo -=
+            amount;
+
+    } else {
+
+        const needed =
+            weapon.magazine -
+            bot.rifleLoaded;
+
+        const amount =
+            Math.min(
+                needed,
+                bot.rifleAmmo
+            );
+
+        bot.rifleLoaded +=
+            amount;
+
+        bot.rifleAmmo -=
+            amount;
+
+    }
+
+    bot.reloading = false;
+
+}
+
+/* =====================================================
+   FIND ENEMY
+===================================================== */
+
+function findNearestEnemy(
+    bot
+) {
+
+    let closest = null;
+
+    let best = Infinity;
+
+    if (
+        player.health > 0
+    ) {
+
+        const d =
+            distance(
+
+                bot.x,
+                bot.y,
+
+                player.x,
+                player.y
+
+            );
+
+        if (
+            d < best
+        ) {
+
+            best = d;
+
+            closest = player;
+
+        }
+
+    }
+
+    for (
+        const other of bots
+    ) {
+
+        if (
+
+            other === bot ||
+
+            !other.alive
+
+        ) {
+
+            continue;
+
+        }
+
+        const d =
+            distance(
+
+                bot.x,
+                bot.y,
+
+                other.x,
+                other.y
+
+            );
+
+        if (
+            d < best
+        ) {
+
+            best = d;
+
+            closest = other;
+
+        }
+
+    }
+
+    return closest;
+
+}
+
+/* =====================================================
+   FIND CHEST
+===================================================== */
+
+function findNearestChest(
+    bot
+) {
+
+    let closest = null;
+
+    let best = 900;
+
+    for (
+        const chest of chests
+    ) {
+
+        if (
+            chest.opened
+        ) {
+
+            continue;
+
+        }
+
+        const d =
+            distance(
+
+                bot.x,
+                bot.y,
+
+                chest.x,
+                chest.y
+
+            );
+
+        if (
+            d < best
+        ) {
+
+            best = d;
+
+            closest = chest;
+
+        }
+
+    }
+
+    return closest;
+
+}
+
+/* =====================================================
+   PLAYER CHEST
+===================================================== */
+
+function openNearestChest() {
+
+    if (
+
+        !gameRunning ||
+
+        paused
+
+    ) {
+
+        return;
+
+    }
+
+    let closest = null;
+
+    let best = 70;
+
+    for (
+        const chest of chests
+    ) {
+
+        if (
+            chest.opened
+        ) {
+
+            continue;
+
+        }
+
+        const d =
+            distance(
+
+                player.x,
+                player.y,
+
+                chest.x,
+                chest.y
+
+            );
+
+        if (
+            d < best
+        ) {
+
+            best = d;
+
+            closest = chest;
+
+        }
+
+    }
+
+    if (
+        closest
+    ) {
+
+        lootChestPlayer(
+            closest
+        );
+
+    }
+
+}
+
+/* =====================================================
+   PLAYER LOOT
+===================================================== */
+
+function lootChestPlayer(
+    chest
+) {
+
+    chest.opened = true;
+
+    const item =
+        chest.item;
+
+    if (
+        item === "pistol"
+    ) {
+
+        player.weapon =
+            "pistol";
+
+        player.pistolAmmo +=
+            24;
+
+        if (
+            player.pistolLoaded === 0
+        ) {
+
+            startReload();
+
+        }
+
+    }
+
+    if (
+        item === "rifle"
+    ) {
+
+        player.weapon =
+            "rifle";
+
+        player.rifleAmmo +=
+            45;
+
+        if (
+            player.rifleLoaded === 0
+        ) {
+
+            startReload();
+
+        }
+
+    }
+
+    if (
+        item === "pistolAmmo"
+    ) {
+
+        player.pistolAmmo +=
+            30;
+
+    }
+
+    if (
+        item === "rifleAmmo"
+    ) {
+
+        player.rifleAmmo +=
+            25;
+
+    }
+
+    if (
+        item === "medkit"
+    ) {
+
+        player.medkits++;
+
+    }
+
+    if (
+        item === "shield"
+    ) {
+
+        player.shield =
+            Math.min(
+                100,
+                player.shield + 40
+            );
+
+    }
+
+    createParticles(
+
+        chest.x,
+        chest.y,
+
+        18,
+
+        "#ffe36e"
+
+    );
+
+    updateHUD();
+
+}
+
+/* =====================================================
+   BOT LOOT
+===================================================== */
+
+function lootChestBot(
+    bot,
+    chest
+) {
+
+    chest.opened = true;
+
+    const item =
+        chest.item;
+
+    if (
+        item === "pistol"
+    ) {
+
+        bot.weapon =
+            "pistol";
+
+        bot.pistolAmmo +=
+            24;
+
+        startBotReload(bot);
+
+    }
+
+    if (
+        item === "rifle"
+    ) {
+
+        bot.weapon =
+            "rifle";
+
+        bot.rifleAmmo +=
+            45;
+
+        startBotReload(bot);
+
+    }
+
+    if (
+        item === "pistolAmmo"
+    ) {
+
+        bot.pistolAmmo +=
+            30;
+
+    }
+
+    if (
+        item === "rifleAmmo"
+    ) {
+
+        bot.rifleAmmo +=
+            25;
+
+    }
+
+    if (
+        item === "medkit"
+    ) {
+
+        bot.medkits++;
+
+    }
+
+    if (
+        item === "shield"
+    ) {
+
+        bot.shield =
+            Math.min(
+                100,
+                bot.shield + 40
+            );
+
+    }
+
+    bot.targetChest =
+        null;
+
+}
+
+/* =====================================================
+   HEAL
+===================================================== */
+
+function useMedkit() {
+
+    if (
+
+        player.medkits <= 0 ||
+
+        player.health >= 100
+
+    ) {
+
+        return;
+
+    }
+
+    player.medkits--;
+
+    player.health =
+        Math.min(
+            100,
+            player.health + 45
+        );
+
+    createParticles(
+
+        player.x,
+        player.y,
+
+        15,
+
+        "#9cff72"
+
+    );
+
+    updateHUD();
+
+}
+
+/* =====================================================
+   BULLETS
+===================================================== */
+
+function updateBullets(dt) {
+
+    const now =
+        performance.now();
+
+    for (
+        let i =
+            bullets.length - 1;
+
+        i >= 0;
+
+        i--
+    ) {
+
+        const bullet =
+            bullets[i];
+
+        bullet.x +=
+            bullet.vx;
+
+        bullet.y +=
+            bullet.vy;
+
+        /*
+           Bullet lifetime:
+
+           Pistol = 2 seconds
+           Rifle = 4 seconds
+        */
+
+        if (
+
+            now -
+                bullet.created >
+            bullet.lifetime
+
+        ) {
+
+            bullets.splice(
+                i,
+                1
+            );
+
+            continue;
+
+        }
+
+        if (
+
+            bullet.x < 0 ||
+
+            bullet.y < 0 ||
+
+            bullet.x >
+                WORLD_WIDTH ||
+
+            bullet.y >
+                WORLD_HEIGHT
+
+        ) {
+
+            bullets.splice(
+                i,
+                1
+            );
+
+            continue;
+
+        }
+
+        /*
+           Buildings block bullets.
+        */
+
+        if (
+            insideBuilding(
+                bullet.x,
+                bullet.y
+            )
+        ) {
+
+            createParticles(
+
+                bullet.x,
+                bullet.y,
+
+                3,
+
+                "#ddd"
+
+            );
+
+            bullets.splice(
+                i,
+                1
+            );
+
+            continue;
+
+        }
+
+        /*
+           HIT PLAYER
+        */
+
+        if (
+
+            bullet.owner !== player &&
+
+            player.health > 0
+
+        ) {
+
+            if (
+
+                distance(
+
+                    bullet.x,
+                    bullet.y,
+
+                    player.x,
+                    player.y
+
+                ) <
+                player.radius
+
+            ) {
+
+                const damage =
+                    getBulletDamage(
+
+                        bullet,
+
+                        player
+
+                    );
+
+                damageEntity(
+
+                    player,
+
+                    damage,
+
+                    bullet.owner
+
+                );
+
+                bullets.splice(
+                    i,
+                    1
+                );
+
+                continue;
+
+            }
+
+        }
+
+        /*
+           HIT BOTS
+        */
+
+        let hit = false;
+
+        for (
+            const bot of bots
+        ) {
+
+            if (
+                !bot.alive
+            ) {
+
+                continue;
+
+            }
+
+            if (
+                bullet.owner ===
+                bot
+            ) {
+
+                continue;
+
+            }
+
+            if (
+
+                distance(
+
+                    bullet.x,
+                    bullet.y,
+
+                    bot.x,
+                    bot.y
+
+                ) <
+                bot.radius
+
+            ) {
+
+                const damage =
+                    getBulletDamage(
+
+                        bullet,
+
+                        bot
+
+                    );
+
+                damageEntity(
+
+                    bot,
+
+                    damage,
+
+                    bullet.owner
+
+                );
+
+                bullets.splice(
+                    i,
+                    1
+                );
+
+                hit = true;
+
+                break;
+
+            }
+
+        }
+
+        if (hit) {
+
+            continue;
+
+        }
+
+    }
+
+}
+
+/* =====================================================
+   RIFLE DAMAGE
+===================================================== */
+
+function getBulletDamage(
+    bullet,
+    target
+) {
+
+    /*
+       Pistol has normal damage.
+    */
+
+    if (
+        bullet.weapon !==
+        "rifle"
+    ) {
+
+        return bullet.baseDamage;
+
+    }
+
+    /*
+       Rifle damage increases
+       with distance.
+
+       The farther away the
+       target is, the more damage
+       it does.
+    */
+
+    const d =
+        distance(
+
+            bullet.startX,
+            bullet.startY,
+
+            target.x,
+            target.y
+
+        );
+
+    const bonus =
+        Math.min(
+            40,
+            d / 20
+        );
+
+    return Math.round(
+
+        bullet.baseDamage +
+        bonus
+
+    );
+
+}
+
+/* =====================================================
+   DAMAGE
+===================================================== */
+
+function damageEntity(
+    entity,
+    damage,
+    attacker
+) {
+
+    let remaining =
+        damage;
+
+    if (
+        entity.shield > 0
+    ) {
+
+        const shieldDamage =
+            Math.min(
+
+                entity.shield,
+
+                remaining
+
+            );
+
+        entity.shield -=
+            shieldDamage;
+
+        remaining -=
+            shieldDamage;
+
+    }
+
+    if (
+        remaining > 0
+    ) {
+
+        entity.health -=
+            remaining;
+
+    }
+
+    if (
+        entity.health <= 0
+    ) {
+
+        entity.health = 0;
+
+        if (
+            entity === player
+        ) {
+
+            endGame(false);
+
+        } else {
+
+            eliminateBot(
+
+                entity,
+
+                attacker
+
+            );
+
+        }
+
+    }
+
+}
+
+/* =====================================================
+   ELIMINATE BOT
+===================================================== */
+
+function eliminateBot(
+    bot,
+    attacker
+) {
+
+    if (
+        !bot.alive
+    ) {
+
+        return;
+
+    }
+
+    bot.alive = false;
+
+    createParticles(
+
+        bot.x,
+        bot.y,
+
+        25,
+
+        "#ff7777"
+
+    );
+
+    if (
+        attacker === player
+    ) {
+
+        player.kills++;
+
+    }
+
+    /*
+       Drop ammo.
+    */
+
+    if (
+        bot.weapon
+    ) {
+
+        chests.push({
+
+            x: bot.x,
+
+            y: bot.y,
+
+            opened: false,
+
+            item:
+
+                bot.weapon ===
+                "rifle"
+
+                    ? "rifleAmmo"
+
+                    : "pistolAmmo"
+
+        });
+
+    }
+
+}
+
+/* =====================================================
+   LINE OF SIGHT
+===================================================== */
+
+function hasLineOfSight(
+    x1,
+    y1,
+    x2,
+    y2
+) {
+
+    const steps =
+        Math.ceil(
+
+            distance(
+                x1,
+                y1,
+                x2,
+                y2
+            ) / 20
+
+        );
+
+    for (
+        let i = 0;
+        i < steps;
+        i++
+    ) {
+
+        const t =
+            i / steps;
+
+        const x =
+            x1 +
+            (x2 - x1) *
+            t;
+
+        const y =
+            y1 +
+            (y2 - y1) *
+            t;
+
+        if (
+            insideBuilding(
+                x,
+                y
+            )
+        ) {
+
+            return false;
+
+        }
+
+    }
+
+    return true;
+
+}
+
+/* =====================================================
+   PARTICLES
+===================================================== */
+
+function createParticles(
+    x,
+    y,
+    count,
+    color
+) {
+
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
+
+        particles.push({
+
+            x: x,
+
+            y: y,
+
+            vx:
+                (
+                    Math.random()
+                    - .5
+                ) * 4,
+
+            vy:
+                (
+                    Math.random()
+                    - .5
+                ) * 4,
+
+            life:
+                400 +
+                Math.random() *
+                400,
+
+            color: color
+
+        });
+
+    }
+
+}
+
+function updateParticles(dt) {
+
+    for (
+        let i =
+            particles.length - 1;
+
+        i >= 0;
+
+        i--
+    ) {
+
+        const p =
+            particles[i];
+
+        p.x += p.vx;
+
+        p.y += p.vy;
+
+        p.life -= dt;
+
+        if (
+            p.life <= 0
+        ) {
+
+            particles.splice(
+                i,
+                1
+            );
+
+        }
+
+    }
+
+}
+
+/* =====================================================
+   CAMERA
+===================================================== */
+
+function updateCamera() {
+
+    camera.x =
+        clamp(
+
+            player.x -
+                W / 2,
+
+            0,
+
+            Math.max(
+
+                0,
+
+                WORLD_WIDTH -
+                    W
+
+            )
+
+        );
+
+    camera.y =
+        clamp(
+
+            player.y -
+                H / 2,
+
+            0,
+
+            Math.max(
+
+                0,
+
+                WORLD_HEIGHT -
+                    H
+
+            )
+
+        );
+
+}
+
+/* =====================================================
+   DRAW WORLD
+===================================================== */
+
+function drawWorld() {
+
+    ctx.clearRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+    ctx.save();
+
+    /*
+       Camera transformation.
+    */
+
+    ctx.translate(
+        -camera.x,
+        -camera.y
+    );
+
+    /* =====================
+       GRASS
+    ===================== */
+
+    ctx.fillStyle =
+        "#70b95b";
+
+    ctx.fillRect(
+
+        0,
+        0,
+
+        WORLD_WIDTH,
+        WORLD_HEIGHT
+
+    );
+
+    /* =====================
+       GRID
+    ===================== */
+
+    ctx.strokeStyle =
+        "rgba(30,100,35,.16)";
+
+    ctx.lineWidth = 1;
+
+    for (
+        let x = 0;
+        x < WORLD_WIDTH;
+        x += 50
+    ) {
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            x,
+            0
+        );
+
+        ctx.lineTo(
+            x,
+            WORLD_HEIGHT
+        );
+
+        ctx.stroke();
+
+    }
+
+    for (
+        let y = 0;
+        y < WORLD_HEIGHT;
+        y += 50
+    ) {
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            0,
+            y
+        );
+
+        ctx.lineTo(
+            WORLD_WIDTH,
+            y
+        );
+
+        ctx.stroke();
+
+    }
+
+    /* =====================
+       ROADS
+    ===================== */
+
+    ctx.fillStyle =
+        "#555";
+
+    ctx.fillRect(
+
+        0,
+        720,
+
+        WORLD_WIDTH,
+        150
+
+    );
+
+    ctx.fillRect(
+
+        1640,
+        0,
+
+        160,
+        WORLD_HEIGHT
+
+    );
+
+    ctx.strokeStyle =
+        "#ddd";
+
+    ctx.lineWidth = 5;
+
+    ctx.setLineDash(
+        [35,30]
+    );
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        0,
+        795
+    );
+
+    ctx.lineTo(
+        WORLD_WIDTH,
+        795
+    );
+
+    ctx.stroke();
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        1720,
+        0
+    );
+
+    ctx.lineTo(
+        1720,
+        WORLD_HEIGHT
+    );
+
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+    /* =====================
+       BUILDINGS
+    ===================== */
+
+    for (
+        const b of buildings
+    ) {
+
+        ctx.fillStyle =
+            "#353c43";
+
+        ctx.fillRect(
+
+            b.x,
+            b.y,
+
+            b.w,
+            b.h
+
+        );
+
+        ctx.fillStyle =
+            "#59636b";
+
+        ctx.fillRect(
+
+            b.x + 10,
+            b.y + 10,
+
+            b.w - 20,
+            35
+
+        );
+
+        ctx.fillStyle =
+            "#a9ddea";
+
+        for (
+            let xx =
+                b.x + 30;
+
+            xx <
+                b.x +
+                b.w -
+                20;
+
+            xx += 55
+        ) {
+
+            for (
+                let yy =
+                    b.y + 70;
+
+                yy <
+                    b.y +
+                    b.h -
+                    25;
+
+                yy += 55
+            ) {
+
+                ctx.fillRect(
+
+                    xx,
+                    yy,
+
+                    25,
+                    30
+
+                );
+
+            }
+
+        }
+
+    }
+
+    /* =====================
+       CARS
+    ===================== */
+
+    for (
+        const car of cars
+    ) {
+
+        ctx.save();
+
+        ctx.translate(
+            car.x,
+            car.y
+        );
+
+        ctx.rotate(
+            car.rotation
+        );
+
+        ctx.fillStyle =
+            "#c94c4c";
+
+        ctx.fillRect(
+
+            -car.w / 2,
+            -car.h / 2,
+
+            car.w,
+            car.h
+
+        );
+
+        ctx.fillStyle =
+            "#a9d7e8";
+
+        ctx.fillRect(
+
+            -20,
+            -12,
+
+            40,
+            24
+
+        );
+
+        ctx.fillStyle =
+            "#222";
+
+        ctx.fillRect(
+
+            -28,
+            -car.h / 2 - 3,
+
+            16,
+            8
+
+        );
+
+        ctx.fillRect(
+
+            12,
+            -car.h / 2 - 3,
+
+            16,
+            8
+
+        );
+
+        ctx.fillRect(
+
+            -28,
+            car.h / 2 - 5,
+
+            16,
+            8
+
+        );
+
+        ctx.fillRect(
+
+            12,
+            car.h / 2 - 5,
+
+            16,
+            8
+
+        );
+
+        ctx.restore();
+
+    }
+
+    /* =====================
+       CHESTS
+    ===================== */
+
+    for (
+        const chest of chests
+    ) {
+
+        ctx.fillStyle =
+            chest.opened
+                ? "#705535"
+                : "#e5a02e";
+
+        ctx.fillRect(
+
+            chest.x - 18,
+            chest.y - 14,
+
+            36,
+            28
+
+        );
+
+        if (
+            !chest.opened
+        ) {
+
+            ctx.fillStyle =
+                "#ffe276";
+
+            ctx.fillRect(
+
+                chest.x - 3,
+                chest.y - 10,
+
+                6,
+                20
+
+            );
+
+        }
+
+    }
+
+    /* =====================
+       BULLETS
+    ===================== */
+
+    for (
+        const bullet of bullets
+    ) {
+
+        ctx.strokeStyle =
+
+            bullet.weapon ===
+            "rifle"
+
+                ? "#ffe85c"
+
+                : "#ffffff";
+
+        ctx.lineWidth = 4;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+
+            bullet.x,
+            bullet.y
+
+        );
+
+        ctx.lineTo(
+
+            bullet.x -
+                bullet.vx * 1.5,
+
+            bullet.y -
+                bullet.vy * 1.5
+
+        );
+
+        ctx.stroke();
+
+        ctx.fillStyle =
+            ctx.strokeStyle;
+
+        ctx.beginPath();
+
+        ctx.arc(
+
+            bullet.x,
+            bullet.y,
+
+            5,
+
+            0,
+            Math.PI * 2
+
+        );
+
+        ctx.fill();
+
+    }
+
+    /* =====================
+       BOTS
+    ===================== */
+
+    for (
+        const bot of bots
+    ) {
+
+        if (
+            !bot.alive
+        ) {
+
+            continue;
+
+        }
+
+        drawCharacter(
+            bot,
+            false
+        );
+
+    }
+
+    /* =====================
+       PLAYER
+    ===================== */
+
+    if (
+        player.health > 0
+    ) {
+
+        drawCharacter(
+            player,
+            true
+        );
+
+    }
+
+    /* =====================
+       PARTICLES
+    ===================== */
+
+    for (
+        const p of particles
+    ) {
+
+        ctx.globalAlpha =
+            Math.max(
+                0,
+                p.life / 700
+            );
+
+        ctx.fillStyle =
+            p.color;
+
+        ctx.beginPath();
+
+        ctx.arc(
+
+            p.x,
+            p.y,
+
+            4,
+
+            0,
+            Math.PI * 2
+
+        );
+
+        ctx.fill();
+
+    }
+
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+
+}
+
+/* =====================================================
+   DRAW CHARACTER
+===================================================== */
+
+function drawCharacter(
+    entity,
+    isPlayer
+) {
+
+    /* =====================
+       SHADOW
+    ===================== */
+
+    ctx.fillStyle =
+        "rgba(0,0,0,.30)";
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+
+        entity.x,
+        entity.y + 24,
+
+        28,
+        11,
+
+        0,
+        0,
+        Math.PI * 2
+
+    );
+
+    ctx.fill();
+
+    /* =====================
+       PLAYER OUTLINE
+    ===================== */
+
+    if (
+        isPlayer
+    ) {
+
+        ctx.beginPath();
+
+        ctx.arc(
+
+            entity.x,
+            entity.y,
+
+            entity.radius + 5,
+
+            0,
+            Math.PI * 2
+
+        );
+
+        ctx.fillStyle =
+            "white";
+
+        ctx.fill();
+
+    }
+
+    /* =====================
+       SQUINKA BODY
+    ===================== */
+
+    ctx.fillStyle =
+
+        isPlayer
+            ? "#ffd84d"
+            : "#f0b65d";
+
+    ctx.beginPath();
+
+    ctx.arc(
+
+        entity.x,
+        entity.y,
+
+        entity.radius,
+
+        0,
+        Math.PI * 2
+
+    );
+
+    ctx.fill();
+
+    /* =====================
+       EARS
+    ===================== */
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+
+        entity.x - 20,
+        entity.y - 12
+
+    );
+
+    ctx.lineTo(
+
+        entity.x - 17,
+        entity.y - 40
+
+    );
+
+    ctx.lineTo(
+
+        entity.x - 3,
+        entity.y - 22
+
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+
+        entity.x + 20,
+        entity.y - 12
+
+    );
+
+    ctx.lineTo(
+
+        entity.x + 17,
+        entity.y - 40
+
+    );
+
+    ctx.lineTo(
+
+        entity.x + 3,
+        entity.y - 22
+
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+    /* =================================================
+       ⭐ GUN — TRUE 360 DEGREE AIM
+    ================================================= */
+
+    if (
+        isPlayer &&
+        player.weapon
+    ) {
+
+        /*
+           Get the exact angle from
+           the Squinka to the mouse.
+        */
+
+        const angle =
+            getAimAngle();
+
+        ctx.save();
+
+        /*
+           Move the canvas origin
+           to the center of Squinka.
+        */
+
+        ctx.translate(
+
+            entity.x,
+            entity.y
+
+        );
+
+        /*
+           ⭐ ROTATE THE GUN AROUND
+           THE ENTIRE 360° CIRCLE.
+        */
+
+        ctx.rotate(angle);
+
+        /*
+           Draw gun BEFORE the face
+           so the Squinka can hold it.
+        */
+
+        if (
+            player.weapon ===
+            "rifle"
+        ) {
+
+            /* Rifle stock */
+
+            ctx.fillStyle =
+                "#5b4634";
+
+            ctx.fillRect(
+
+                2,
+                -7,
+
+                18,
+                14
+
+            );
+
+            /* Rifle body */
+
+            ctx.fillStyle =
+                "#333";
+
+            ctx.fillRect(
+
+                15,
+                -6,
+
+                43,
+                12
+
+            );
+
+            /* Rifle barrel */
+
+            ctx.fillStyle =
+                "#171717";
+
+            ctx.fillRect(
+
+                53,
+                -3,
+
+                20,
+                6
+
+            );
+
+            /* Magazine */
+
+            ctx.fillStyle =
+                "#222";
+
+            ctx.fillRect(
+
+                27,
+                5,
+
+                9,
+                17
+
+            );
+
+        } else {
+
+            /* Pistol body */
+
+            ctx.fillStyle =
+                "#222";
+
+            ctx.fillRect(
+
+                8,
+                -6,
+
+                38,
+                12
+
+            );
+
+            /* Pistol barrel */
+
+            ctx.fillStyle =
+                "#111";
+
+            ctx.fillRect(
+
+                43,
+                -3,
+
+                15,
+                6
+
+            );
+
+            /* Pistol handle */
+
+            ctx.fillStyle =
+                "#292929";
+
+            ctx.fillRect(
+
+                20,
+                5,
+
+                10,
+                17
+
+            );
+
+        }
+
+        ctx.restore();
+
+    }
+
+    /* =====================
+       FACE
+    ===================== */
+
+    ctx.font =
+        "30px Arial";
+
+    ctx.textAlign =
+        "center";
+
+    ctx.textBaseline =
+        "middle";
+
+    ctx.fillText(
+
+        entity.avatar,
+
+        entity.x,
+        entity.y
+
+    );
+
+    /* =====================
+       YOU
+    ===================== */
+
+    if (
+        isPlayer
+    ) {
+
+        ctx.font =
+            "bold 13px Arial";
+
+        ctx.fillStyle =
+            "white";
+
+        ctx.fillText(
+
+            "YOU",
+
+            entity.x,
+            entity.y + 42
+
+        );
+
+    }
+
+    /* =====================
+       HEALTH BAR
+    ===================== */
+
+    const barWidth = 58;
+
+    ctx.fillStyle =
+        "#222";
+
+    ctx.fillRect(
+
+        entity.x -
+            barWidth / 2,
+
+        entity.y - 51,
+
+        barWidth,
+        7
+
+    );
+
+    ctx.fillStyle =
+        "#52e35c";
+
+    ctx.fillRect(
+
+        entity.x -
+            barWidth / 2,
+
+        entity.y - 51,
+
+        barWidth *
+            Math.max(
+                0,
+                entity.health / 100
+            ),
+
+        7
+
+    );
+
+    /* =====================
+       NAME
+    ===================== */
+
+    ctx.font =
+        "bold 12px Arial";
+
+    ctx.fillStyle =
+        "white";
+
+    ctx.fillText(
+
+        entity.name,
+
+        entity.x,
+        entity.y - 63
+
+    );
+
+}
+
+/* =====================================================
+   HUD
+===================================================== */
+
+function updateHUD() {
+
+    document
+        .getElementById(
+            "healthBar"
+        )
+        .style.width =
+            player.health + "%";
+
+    document
+        .getElementById(
+            "shieldBar"
+        )
+        .style.width =
+            player.shield + "%";
+
+    document
+        .getElementById(
+            "medkits"
+        )
+        .textContent =
+            player.medkits;
+
+    document
+        .getElementById(
+            "kills"
+        )
+        .textContent =
+            player.kills;
+
+    document
+        .getElementById(
+            "pistolAmmo"
+        )
+        .textContent =
+            player.pistolAmmo;
+
+    document
+        .getElementById(
+            "rifleAmmo"
+        )
+        .textContent =
+            player.rifleAmmo;
+
+    document
+        .getElementById(
+            "weaponName"
+        )
+        .textContent =
+
+            player.weapon
+
+                ? weapons[
+                    player.weapon
+                  ].name
+
+                : "No Weapon";
+
+    let currentAmmo = 0;
+
+    if (
+        player.weapon ===
+        "pistol"
+    ) {
+
+        currentAmmo =
+            player.pistolLoaded;
+
+    }
+
+    if (
+        player.weapon ===
+        "rifle"
+    ) {
+
+        currentAmmo =
+            player.rifleLoaded;
+
+    }
+
+    document
+        .getElementById(
+            "currentAmmo"
+        )
+        .textContent =
+            currentAmmo;
+
+    document
+        .getElementById(
+            "reloadText"
+        )
+        .textContent =
+
+            player.reloading
+
+                ? "🔄 RELOADING..."
+
+                : "";
+
+    let alive = 1;
+
+    for (
+        const bot of bots
+    ) {
+
+        if (
+            bot.alive
+        ) {
+
+            alive++;
+
+        }
+
+    }
+
+    document
+        .getElementById(
+            "alive"
+        )
+        .textContent =
+            alive;
+
+}
+
+/* =====================================================
+   PAUSE
+===================================================== */
+
+function updatePauseMenu() {
+
+    document
+        .getElementById(
+            "pauseMenu"
+        )
+        .classList
+        .toggle(
+            "hidden",
+            !paused
+        );
+
+}
+
+document
+    .getElementById(
+        "pauseButton"
+    )
+    .onclick = function() {
+
+        paused = true;
+
+        updatePauseMenu();
+
+    };
+
+document
+    .getElementById(
+        "resumeButton"
+    )
+    .onclick = function() {
+
+        paused = false;
+
+        updatePauseMenu();
+
+    };
+
+/*
+   Change this filename if your
+   Squinka website homepage has
+   a different filename.
+*/
+
+document
+    .getElementById(
+        "backButton"
+    )
+    .onclick = function() {
+
+        window.location.href =
+            "index.html";
+
+    };
+
+document
+    .getElementById(
+        "gameOverBack"
+    )
+    .onclick = function() {
+
+        window.location.href =
+            "index.html";
+
+    };
+
+/* =====================================================
+   GAME OVER
+===================================================== */
+
+function endGame(won) {
+
+    gameRunning = false;
+
+    const overlay =
+        document.getElementById(
+            "gameOver"
+        );
+
+    const title =
+        document.getElementById(
+            "gameOverTitle"
+        );
+
+    const text =
+        document.getElementById(
+            "gameOverText"
+        );
+
+    if (won) {
+
+        title.textContent =
+            "🏆 VICTORY!";
+
+        text.textContent =
+
+            player.name +
+            " was the last Squinka standing!";
+
+    } else {
+
+        title.textContent =
+            "💥 ELIMINATED";
+
+        text.textContent =
+
+            "You got " +
+            player.kills +
+            " elimination" +
+            (
+                player.kills === 1
+                    ? ""
+                    : "s"
+            ) +
+            ".";
+
+    }
+
+    overlay
+        .classList
+        .remove("hidden");
+
+}
+
+/* =====================================================
+   RESTART
+===================================================== */
+
+document
+    .getElementById(
+        "restartButton"
+    )
+    .onclick = function() {
+
+        document
+            .getElementById(
+                "gameOver"
+            )
+            .classList
+            .add("hidden");
+
+        startGame();
+
+    };
+
+/* =====================================================
+   VICTORY
+===================================================== */
+
+function checkVictory() {
+
+    let aliveBots = 0;
+
+    for (
+        const bot of bots
+    ) {
+
+        if (
+            bot.alive
+        ) {
+
+            aliveBots++;
+
+        }
+
+    }
+
+    if (
+
+        player.health > 0 &&
+
+        aliveBots === 0
+
+    ) {
+
+        endGame(true);
+
+    }
+
+}
+
+/* =====================================================
+   MAIN LOOP
+===================================================== */
+
+let lastTime =
+    performance.now();
+
+function gameLoop(now) {
+
+    const dt =
+        now - lastTime;
+
+    lastTime = now;
+
+    if (
+
+        gameRunning &&
+
+        !paused
+
+    ) {
+
+        updatePlayer(dt);
+
+        updateBots(dt);
+
+        updateBullets(dt);
+
+        updateParticles(dt);
+
+        updateCamera();
+
+        updateHUD();
+
+        checkVictory();
+
+    }
+
+    drawWorld();
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+}
+
+requestAnimationFrame(
+    gameLoop
+);
+
+</script>
+
+</body>
+</html>
+```

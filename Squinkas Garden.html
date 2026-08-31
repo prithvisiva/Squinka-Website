@@ -1,0 +1,5361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Squinka's Garden</title>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#102016;
+    font-family:Arial,sans-serif;
+}
+
+#game{
+    width:100vw;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    position:relative;
+}
+
+canvas{
+    width:98vw;
+    height:96vh;
+    max-width:1800px;
+    max-height:1050px;
+    border:5px solid #315a32;
+    border-radius:18px;
+    background:#75c94e;
+    box-shadow:0 0 30px rgba(0,0,0,.4);
+}
+
+#ui{
+    position:absolute;
+    top:20px;
+    left:25px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    max-width:65%;
+    pointer-events:none;
+}
+
+.panel{
+    background:rgba(20,35,22,.93);
+    border:2px solid #a8e063;
+    border-radius:12px;
+    padding:9px 13px;
+    color:white;
+    font-weight:bold;
+}
+
+#musicControls{
+    position:absolute;
+    right:25px;
+    top:20px;
+    display:flex;
+    gap:6px;
+    z-index:10;
+}
+
+#pauseButton{
+    background:#8e4242;
+    color:white;
+    border:2px solid #f0a0a0;
+    border-radius:10px;
+    padding:9px 12px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+#pauseOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.72);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+}
+
+#pauseOverlay.open{
+    display:flex;
+}
+
+#pauseBox{
+    background:#18251b;
+    border:4px solid #a8e063;
+    border-radius:20px;
+    padding:30px;
+    width:min(420px,90vw);
+    text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+
+#pauseBox h2{
+    margin:0 0 20px;
+    font-size:32px;
+}
+
+.pauseMenuButton{
+    display:block;
+    width:100%;
+    margin:10px 0;
+    padding:13px;
+    font-size:17px;
+}
+
+#resumeButton{
+    background:#5c9d4c;
+    color:white;
+    border:2px solid #9edb72;
+}
+
+#goIndexButton{
+    background:#e0b84f;
+    color:#222;
+    border:2px solid #f6d879;
+}
+
+.musicBtn{
+    background:#315f38;
+    color:white;
+    border:2px solid #a8e063;
+    border-radius:10px;
+    padding:9px 12px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.musicBtn:hover{
+    background:#4b814e;
+}
+
+#message{
+    position:absolute;
+    bottom:28px;
+    left:50%;
+    transform:translateX(-50%);
+    background:rgba(20,30,20,.95);
+    border:2px solid #a8e063;
+    border-radius:14px;
+    padding:12px 22px;
+    color:white;
+    font-size:17px;
+    display:none;
+    text-align:center;
+    z-index:100;
+}
+
+#help{
+    position:absolute;
+    left:25px;
+    bottom:18px;
+    background:rgba(20,30,20,.8);
+    padding:8px 13px;
+    border-radius:10px;
+    color:white;
+    font-size:14px;
+}
+
+/* SHOP WINDOWS */
+
+.shopWindow{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:1000px;
+    max-width:94vw;
+    height:87vh;
+    background:rgba(18,30,20,.98);
+    border:4px solid #a8e063;
+    border-radius:20px;
+    padding:18px;
+    display:none;
+    z-index:50;
+    color:white;
+}
+
+.shopWindow h2{
+    text-align:center;
+    margin:0;
+}
+
+.shopDescription{
+    text-align:center;
+    color:#d7ead2;
+    margin:6px 0 14px;
+}
+
+.shopTop{
+    display:flex;
+    gap:8px;
+    margin-bottom:12px;
+}
+
+.shopTop input,
+.shopTop select{
+    padding:11px;
+    border-radius:10px;
+    border:2px solid #638a58;
+    background:#17291b;
+    color:white;
+    font-size:15px;
+}
+
+.shopTop input{
+    flex:1;
+}
+
+.scrollArea{
+    height:calc(100% - 160px);
+    overflow-y:auto;
+    padding:4px;
+}
+
+.scrollArea::-webkit-scrollbar{
+    width:12px;
+}
+
+.scrollArea::-webkit-scrollbar-track{
+    background:#142319;
+}
+
+.scrollArea::-webkit-scrollbar-thumb{
+    background:#668d57;
+    border-radius:10px;
+}
+
+.seedCard,
+.sellCard{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:#263d29;
+    border:2px solid #476b48;
+    border-radius:14px;
+    padding:10px;
+    margin-bottom:8px;
+}
+
+.seedCard:hover,
+.sellCard:hover{
+    background:#304d33;
+}
+
+/* SEED PREVIEW */
+
+.seedPreview{
+    width:82px;
+    height:82px;
+    background:#17291b;
+    border:2px solid #52734e;
+    border-radius:12px;
+    overflow:hidden;
+    flex-shrink:0;
+}
+
+.seedPreview canvas{
+    width:82px !important;
+    height:82px !important;
+    max-width:none;
+    max-height:none;
+    border:none;
+    border-radius:0;
+    box-shadow:none;
+    background:transparent;
+}
+
+.seedInfo{
+    flex:1;
+    min-width:0;
+    background:transparent;
+}
+
+.seedName{
+    font-size:18px;
+    font-weight:bold;
+    margin-bottom:4px;
+}
+
+.seedRarity{
+    font-weight:bold;
+    margin-bottom:4px;
+}
+
+.seedStats{
+    font-size:13px;
+    color:#d8e8d4;
+}
+
+/* SEPARATE PRICE BOX */
+
+.seedPriceBox{
+    min-width:125px;
+    text-align:center;
+    padding:9px 12px;
+    border-radius:10px;
+    background:#17291b;
+    border:2px solid #638a58;
+    color:#ffd95c;
+    font-weight:bold;
+    white-space:nowrap;
+}
+
+.buyButton,
+.sellButton{
+    flex-shrink:0;
+    background:#5c9d4c;
+    color:white;
+    border:2px solid #9edb72;
+    border-radius:10px;
+    padding:10px 15px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.buyButton:hover,
+.sellButton:hover{
+    background:#73b961;
+}
+
+.buyButton:disabled{
+    background:#555;
+    border-color:#777;
+    cursor:not-allowed;
+}
+
+.closeButton{
+    display:block;
+    margin:9px auto 0;
+    background:#8e4242;
+    color:white;
+    border:none;
+    padding:10px 28px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+/* SONG MENU */
+
+#songMenu{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:620px;
+    max-width:90vw;
+    background:rgba(18,30,20,.98);
+    border:4px solid #a8e063;
+    border-radius:20px;
+    padding:22px;
+    display:none;
+    z-index:60;
+    color:white;
+}
+
+#songMenu h2{
+    text-align:center;
+    margin-top:0;
+}
+
+#songList{
+    height:430px;
+    overflow-y:auto;
+}
+
+.songOption{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:11px;
+    margin-bottom:6px;
+    background:#263d29;
+    border:2px solid #476b48;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+.songOption:hover{
+    background:#38593b;
+}
+
+.songOption.selected{
+    border-color:#a8e063;
+    background:#3b603d;
+}
+
+.songPlay{
+    background:#5c9d4c;
+    color:white;
+    border:0;
+    padding:7px 12px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+/* AVATAR */
+
+#avatarEditor{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:760px;
+    max-width:92vw;
+    height:720px;
+    max-height:88vh;
+    background:rgba(18,30,20,.98);
+    border:4px solid #a8e063;
+    border-radius:20px;
+    padding:20px;
+    display:none;
+    z-index:70;
+    color:white;
+}
+
+#avatarEditor h2{
+    text-align:center;
+    margin:0 0 12px;
+}
+
+.avatarEditorContent{
+    display:flex;
+    gap:20px;
+    height:560px;
+}
+
+#avatarPreview{
+    width:330px;
+    height:100%;
+    background:#29452d;
+    border:3px solid #557b55;
+    border-radius:18px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+#avatarCanvas{
+    width:300px;
+    height:420px;
+    background:#72bd55;
+    border-radius:15px;
+}
+
+.avatarOptions{
+    flex:1;
+    overflow-y:auto;
+    padding-right:8px;
+}
+
+.optionGroup{
+    background:#263d29;
+    border:2px solid #476b48;
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:10px;
+}
+
+.optionGroup h3{
+    margin:0 0 9px;
+}
+
+.optionButtons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+}
+
+.optionButton{
+    background:#38583b;
+    color:white;
+    border:2px solid #628262;
+    border-radius:9px;
+    padding:8px 11px;
+    cursor:pointer;
+}
+
+.optionButton:hover{
+    background:#4b754d;
+}
+
+.optionButton.selected{
+    border-color:#c7f078;
+    background:#527c4e;
+}
+
+.colorButton{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    border:3px solid #789278;
+    cursor:pointer;
+}
+
+.colorButton.selected{
+    border-color:white;
+    box-shadow:0 0 0 3px #a8e063;
+}
+
+#avatarBottom{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-top:10px;
+}
+
+.avatarDone{
+    background:#5c9d4c;
+    color:white;
+    border:2px solid #9edb72;
+    border-radius:10px;
+    padding:10px 30px;
+    cursor:pointer;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+<canvas id="canvas" width="1800" height="1050"></canvas>
+
+<div id="ui">
+    <div class="panel">💰 Coins: <span id="coins">10</span></div>
+    <div class="panel">🌱 Seeds: <span id="seedCount">10</span></div>
+    <div class="panel">🥕 Crops: <span id="crops">0</span></div>
+    <div class="panel">🌱 Holding: <span id="holding">Sun Apple</span></div>
+    <div class="panel">🎵 <span id="songName">Garden Morning</span></div>
+</div>
+
+<div id="musicControls">
+    <button class="musicBtn" id="previousSong">⏮</button>
+    <button class="musicBtn" id="musicButton">🔊</button>
+    <button class="musicBtn" id="nextSong">⏭</button>
+    <button class="musicBtn" id="songsButton">🎵 Songs</button>
+    <button class="musicBtn" id="avatarButton">🐱 Avatar</button>
+    <button id="pauseButton">⏸ Pause</button>
+</div>
+
+<div id="pauseOverlay">
+    <div id="pauseBox">
+        <h2>⏸ Game Paused</h2>
+        <button class="pauseMenuButton" id="resumeButton">▶ Resume</button>
+        <button class="pauseMenuButton" id="goIndexButton">🏠 Go to Squinka Website</button>
+    </div>
+</div>
+
+<div id="message"></div>
+
+<div id="help">
+    WASD / Arrow Keys = Move &nbsp; | &nbsp; E = Interact
+</div>
+
+<!-- SEED SHOP -->
+
+<div id="seedShop" class="shopWindow">
+
+    <h2>🌱 Seed Shop</h2>
+
+    <div class="shopDescription">
+        500 different seeds • Cheapest seeds are shown first
+    </div>
+
+    <div class="shopTop">
+
+        <input
+            id="seedSearch"
+            placeholder="🔎 Search seeds..."
+        >
+
+        <select id="rarityFilter">
+            <option value="all">All Rarities</option>
+            <option value="Common">Common</option>
+            <option value="Uncommon">Uncommon</option>
+            <option value="Rare">Rare</option>
+            <option value="Epic">Epic</option>
+            <option value="Legendary">Legendary</option>
+            <option value="Mythic">Mythic</option>
+            <option value="Celestial">Celestial</option>
+        </select>
+
+        <select id="sortFilter">
+            <option value="cheap">Cheapest</option>
+            <option value="expensive">Most Expensive</option>
+            <option value="name">Name</option>
+            <option value="rarity">Rarity</option>
+        </select>
+
+    </div>
+
+    <div id="seedItems" class="scrollArea"></div>
+
+    <div id="noSeeds"
+         style="text-align:center;display:none;padding:30px">
+        No seeds found.
+    </div>
+
+    <button class="closeButton" id="closeSeedShop">
+        Close
+    </button>
+
+</div>
+
+<!-- SELL SHOP -->
+
+<div id="sellShop" class="shopWindow">
+
+    <h2>🏪 Selling Shop</h2>
+
+    <div class="shopDescription">
+        Sell your harvested crops for coins!
+    </div>
+
+    <div id="sellItems" class="scrollArea"></div>
+
+    <button class="closeButton" id="closeSellShop">
+        Close
+    </button>
+
+</div>
+
+<!-- SONG MENU -->
+
+<div id="songMenu">
+
+    <h2>🎵 Choose Your Music</h2>
+
+    <div id="songList"></div>
+
+    <button class="closeButton" id="closeSongMenu">
+        Close
+    </button>
+
+</div>
+
+<!-- AVATAR EDITOR -->
+
+<div id="avatarEditor">
+
+    <h2>🐱 Squinka Avatar Editor</h2>
+
+    <div class="avatarEditorContent">
+
+        <div id="avatarPreview">
+            <canvas id="avatarCanvas"
+                    width="300"
+                    height="420"></canvas>
+        </div>
+
+        <div class="avatarOptions">
+
+            <div class="optionGroup">
+
+                <h3>🎨 Fur Color</h3>
+
+                <div class="optionButtons">
+
+                    <button class="colorButton selected"
+                            data-color="#f292c0"
+                            style="background:#f292c0"></button>
+
+                    <button class="colorButton"
+                            data-color="#ffffff"
+                            style="background:#ffffff"></button>
+
+                    <button class="colorButton"
+                            data-color="#9c7cff"
+                            style="background:#9c7cff"></button>
+
+                    <button class="colorButton"
+                            data-color="#73c8ff"
+                            style="background:#73c8ff"></button>
+
+                    <button class="colorButton"
+                            data-color="#ffd166"
+                            style="background:#ffd166"></button>
+
+                    <button class="colorButton"
+                            data-color="#a66a45"
+                            style="background:#a66a45"></button>
+
+                    <button class="colorButton"
+                            data-color="#777777"
+                            style="background:#777777"></button>
+
+                </div>
+
+            </div>
+
+            <div class="optionGroup">
+
+                <h3>👀 Eyes</h3>
+
+                <div class="optionButtons">
+
+                    <button class="optionButton selected"
+                            data-eye="normal">
+                        Cute
+                    </button>
+
+                    <button class="optionButton"
+                            data-eye="big">
+                        Big
+                    </button>
+
+                    <button class="optionButton"
+                            data-eye="happy">
+                        Happy
+                    </button>
+
+                    <button class="optionButton"
+                            data-eye="sparkle">
+                        Sparkle
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="optionGroup">
+
+                <h3>👂 Ears</h3>
+
+                <div class="optionButtons">
+
+                    <button class="optionButton selected"
+                            data-ears="normal">
+                        Normal
+                    </button>
+
+                    <button class="optionButton"
+                            data-ears="round">
+                        Round
+                    </button>
+
+                    <button class="optionButton"
+                            data-ears="large">
+                        Big Ears
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="optionGroup">
+
+                <h3>🎀 Accessory</h3>
+
+                <div class="optionButtons">
+
+                    <button class="optionButton selected"
+                            data-accessory="none">
+                        None
+                    </button>
+
+                    <button class="optionButton"
+                            data-accessory="flower">
+                        🌸 Flower
+                    </button>
+
+                    <button class="optionButton"
+                            data-accessory="crown">
+                        👑 Crown
+                    </button>
+
+                    <button class="optionButton"
+                            data-accessory="bow">
+                        🎀 Bow
+                    </button>
+
+                    <button class="optionButton"
+                            data-accessory="leaf">
+                        🍃 Leaf
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="optionGroup">
+
+                <h3>🐾 Tail</h3>
+
+                <div class="optionButtons">
+
+                    <button class="optionButton selected"
+                            data-tail="curly">
+                        Curly
+                    </button>
+
+                    <button class="optionButton"
+                            data-tail="fluffy">
+                        Fluffy
+                    </button>
+
+                    <button class="optionButton"
+                            data-tail="long">
+                        Long
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="avatarBottom">
+
+        <button class="avatarDone"
+                id="closeAvatar">
+            Save Avatar
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   MAIN GAME
+========================================================= */
+
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+
+const W=canvas.width;
+const H=canvas.height;
+
+let coins=10;
+let seedCount=10;
+let crops=0;
+
+let holdingSeed=0;
+
+const keys={};
+
+let gamePaused=false;
+
+
+/* =========================================================
+   PLAYER
+========================================================= */
+
+const player={
+    x:900,
+    y:530,
+    size:42,
+    speed:5
+};
+
+
+/* =========================================================
+   GARDEN
+========================================================= */
+
+const garden={
+    x:650,
+    y:360,
+    width:440,
+    height:300
+};
+
+
+/* =========================================================
+   RARITIES
+========================================================= */
+
+const rarities=[
+
+    {
+        name:"Common",
+        price:5,
+        value:10,
+        color:"#7ed957"
+    },
+
+    {
+        name:"Uncommon",
+        price:10,
+        value:20,
+        color:"#55c96b"
+    },
+
+    {
+        name:"Rare",
+        price:25,
+        value:50,
+        color:"#4da6ff"
+    },
+
+    {
+        name:"Epic",
+        price:60,
+        value:120,
+        color:"#b45cff"
+    },
+
+    {
+        name:"Legendary",
+        price:150,
+        value:300,
+        color:"#ffb52e"
+    },
+
+    {
+        name:"Mythic",
+        price:300,
+        value:650,
+        color:"#ff5c9a"
+    },
+
+    {
+        name:"Celestial",
+        price:750,
+        value:1500,
+        color:"#ffffff"
+    }
+
+];
+
+
+/* =========================================================
+   500 SEEDS
+========================================================= */
+
+const firstNames=[
+    "Sun","Moon","Star","Crystal","Magic",
+    "Rainbow","Golden","Shadow","Cloud","Honey",
+    "Jade","Ruby","Pearl","Dream","Fire",
+    "Ice","Thunder","Candy","Bubble","Twinkle",
+    "Mystic","Glow","Tiny","Giant","Frost",
+    "Storm","Bloom","Spark","Lunar","Solar",
+    "Rose","Ocean","Forest","Sky","Comet",
+    "Galaxy","Aurora","Dragon","Fairy","Wizard",
+    "Velvet","Sweet","Wild","Lucky","Silver",
+    "Emerald","Sapphire","Flame","Ghost","Cocoa"
+];
+
+const secondNames=[
+    "Apple","Flower","Melon","Carrot","Tulip",
+    "Mushroom","Vine","Orchid","Pear","Peach",
+    "Berry","Pumpkin","Cactus","Lily","Daisy",
+    "Rose","Fruit","Leaf","Sprout","Crystal",
+    "Tree","Bush","Bean","Root","Pod",
+    "Bloom","Clover","Corn","Palm","Starfruit"
+];
+
+const seeds=[];
+
+for(let i=0;i<500;i++){
+
+    let rarityIndex;
+
+    if(i<180) rarityIndex=0;
+    else if(i<310) rarityIndex=1;
+    else if(i<395) rarityIndex=2;
+    else if(i<450) rarityIndex=3;
+    else if(i<480) rarityIndex=4;
+    else if(i<495) rarityIndex=5;
+    else rarityIndex=6;
+
+    const rarity=rarities[rarityIndex];
+
+    seeds.push({
+
+        id:i,
+
+        name:
+            firstNames[Math.floor(i/30)]
+            +" "
+            +secondNames[i%30],
+
+        rarity:rarity.name,
+
+        rarityIndex:rarityIndex,
+
+        color:rarity.color,
+
+        price:
+            rarity.price+
+            (i%5)*Math.max(
+                1,
+                Math.floor(rarity.price/5)
+            ),
+
+        value:
+            rarity.value+
+            (i%7)*2,
+
+        shape:i%12,
+
+        growthTime:
+            5+rarityIndex*2
+
+    });
+
+}
+
+
+/* =========================================================
+   PLANT SPOTS
+========================================================= */
+
+const plantSpots=[];
+
+for(let row=0;row<4;row++){
+
+    for(let col=0;col<6;col++){
+
+        plantSpots.push({
+
+            x:garden.x+42+col*70,
+
+            y:garden.y+48+row*66,
+
+            planted:false,
+
+            grown:false,
+
+            timer:0,
+
+            seedId:null,
+
+            readyNotified:false
+
+        });
+
+    }
+
+}
+
+
+/* =========================================================
+   SHOPS
+========================================================= */
+
+const seedShopBuilding={
+    x:160,
+    y:400,
+    width:230,
+    height:125
+};
+
+const sellShopBuilding={
+    x:1410,
+    y:400,
+    width:230,
+    height:125
+};
+
+
+/* =========================================================
+   TREES
+========================================================= */
+
+const trees=[
+    {x:80,y:150},
+    {x:280,y:190},
+    {x:1530,y:150},
+    {x:1700,y:270},
+    {x:100,y:850},
+    {x:1550,y:850}
+];
+
+
+/* =========================================================
+   FLOWERS
+========================================================= */
+
+const flowers=[];
+
+for(let i=0;i<130;i++){
+
+    const x=25+Math.random()*(W-50);
+    const y=35+Math.random()*(H-70);
+
+    if(
+        x>garden.x-40 &&
+        x<garden.x+garden.width+40 &&
+        y>garden.y-40 &&
+        y<garden.y+garden.height+40
+    ){
+        continue;
+    }
+
+    flowers.push({
+        x:x,
+        y:y,
+        type:i%5
+    });
+
+}
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+document.addEventListener("keydown",e=>{
+
+    keys[e.key.toLowerCase()]=true;
+
+    if(e.key.toLowerCase()==="e"){
+        interact();
+    }
+
+});
+
+document.addEventListener("keyup",e=>{
+
+    keys[e.key.toLowerCase()]=false;
+
+});
+
+
+/* =========================================================
+   PLAYER MOVEMENT
+========================================================= */
+
+function updatePlayer(){
+
+    if(gamePaused) return;
+
+    let dx=0;
+    let dy=0;
+
+    if(keys["w"]||keys["arrowup"])
+        dy-=player.speed;
+
+    if(keys["s"]||keys["arrowdown"])
+        dy+=player.speed;
+
+    if(keys["a"]||keys["arrowleft"])
+        dx-=player.speed;
+
+    if(keys["d"]||keys["arrowright"])
+        dx+=player.speed;
+
+    if(dx!==0&&dy!==0){
+
+        dx*=.707;
+        dy*=.707;
+
+    }
+
+    player.x+=dx;
+    player.y+=dy;
+
+    player.x=Math.max(
+        35,
+        Math.min(W-35,player.x)
+    );
+
+    player.y=Math.max(
+        35,
+        Math.min(H-35,player.y)
+    );
+
+}
+
+
+/* =========================================================
+   TREES
+========================================================= */
+
+function drawTree(x,y){
+
+    ctx.fillStyle="#704526";
+
+    ctx.fillRect(
+        x-15,
+        y+20,
+        30,
+        65
+    );
+
+    ctx.fillStyle="#2f8135";
+
+    ctx.beginPath();
+    ctx.arc(x,y,48,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(x-32,y+20,32,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(x+32,y+20,32,0,Math.PI*2);
+    ctx.fill();
+
+}
+
+
+/* =========================================================
+   FLOWERS
+========================================================= */
+
+function drawFlower(f){
+
+    const colors=[
+        "#ff72a7",
+        "#fff06a",
+        "#a878ff",
+        "#72dcff",
+        "#ff8a55"
+    ];
+
+    ctx.strokeStyle="#39883a";
+    ctx.lineWidth=3;
+
+    ctx.beginPath();
+
+    ctx.moveTo(f.x,f.y);
+    ctx.lineTo(f.x,f.y+15);
+
+    ctx.stroke();
+
+    ctx.fillStyle=colors[f.type];
+
+    for(let i=0;i<5;i++){
+
+        const angle=i*Math.PI*2/5;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            f.x+Math.cos(angle)*7,
+            f.y+Math.sin(angle)*7,
+            5,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+    }
+
+}
+
+
+/* =========================================================
+   GARDEN
+========================================================= */
+
+function drawGarden(){
+
+    ctx.fillStyle="#956039";
+
+    ctx.fillRect(
+        garden.x,
+        garden.y,
+        garden.width,
+        garden.height
+    );
+
+    ctx.strokeStyle="#633d25";
+    ctx.lineWidth=10;
+
+    ctx.strokeRect(
+        garden.x,
+        garden.y,
+        garden.width,
+        garden.height
+    );
+
+    ctx.strokeStyle="#b37949";
+    ctx.lineWidth=2;
+
+    for(
+        let y=garden.y+15;
+        y<garden.y+garden.height;
+        y+=22
+    ){
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            garden.x+8,
+            y
+        );
+
+        ctx.lineTo(
+            garden.x+garden.width-8,
+            y
+        );
+
+        ctx.stroke();
+
+    }
+
+    for(const p of plantSpots){
+
+        ctx.fillStyle="#5d381f";
+
+        ctx.beginPath();
+
+        ctx.ellipse(
+            p.x,
+            p.y,
+            29,
+            15,
+            0,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+        if(p.planted){
+            drawPlant(p);
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   PLANT DRAWING
+========================================================= */
+
+function drawPlant(p){
+
+    const seed=seeds[p.seedId];
+
+    if(!p.grown){
+
+        ctx.strokeStyle="#45a842";
+        ctx.lineWidth=5;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            p.x,
+            p.y
+        );
+
+        ctx.lineTo(
+            p.x,
+            p.y-18
+        );
+
+        ctx.stroke();
+
+        ctx.fillStyle="#55bd4d";
+
+        ctx.beginPath();
+
+        ctx.ellipse(
+            p.x-6,
+            p.y-18,
+            8,
+            4,
+            -.5,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+        return;
+
+    }
+
+    const rarity=seed.rarityIndex;
+
+    /*
+        Higher rarity =
+        bigger plant.
+    */
+
+    const size=
+        22+
+        rarity*8;
+
+    if(rarity>=3){
+
+        ctx.shadowBlur=
+            10+
+            rarity*4;
+
+        ctx.shadowColor=
+            seed.color;
+
+    }
+
+    ctx.strokeStyle="#32883b";
+    ctx.lineWidth=6;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        p.x,
+        p.y
+    );
+
+    ctx.lineTo(
+        p.x,
+        p.y-size
+    );
+
+    ctx.stroke();
+
+    ctx.fillStyle=seed.color;
+
+
+    if(seed.shape%6===0){
+
+        ctx.beginPath();
+
+        ctx.arc(
+            p.x,
+            p.y-size,
+            size,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+    }
+
+    else if(seed.shape%6===1){
+
+        for(let i=0;i<6;i++){
+
+            const a=i*Math.PI/3;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                p.x+Math.cos(a)*size*.7,
+                p.y-size+Math.sin(a)*size*.7,
+                size*.55,
+                0,
+                Math.PI*2
+            );
+
+            ctx.fill();
+
+        }
+
+    }
+
+    else if(seed.shape%6===2){
+
+        ctx.beginPath();
+
+        ctx.roundRect(
+            p.x-size,
+            p.y-size*2,
+            size*2,
+            size*2,
+            12
+        );
+
+        ctx.fill();
+
+    }
+
+    else if(seed.shape%6===3){
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            p.x,
+            p.y-size*2
+        );
+
+        ctx.lineTo(
+            p.x+size,
+            p.y
+        );
+
+        ctx.lineTo(
+            p.x-size,
+            p.y
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+
+    }
+
+    else if(seed.shape%6===4){
+
+        ctx.beginPath();
+
+        ctx.ellipse(
+            p.x,
+            p.y-size,
+            size*.7,
+            size*1.4,
+            0,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+    }
+
+    else{
+
+        for(let i=0;i<8;i++){
+
+            const a=i*Math.PI/4;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                p.x+Math.cos(a)*size*.8,
+                p.y-size+Math.sin(a)*size*.8,
+                size*.42,
+                0,
+                Math.PI*2
+            );
+
+            ctx.fill();
+
+        }
+
+    }
+
+
+    /* Leaves */
+
+    ctx.fillStyle="#3e9c43";
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        p.x-size*.8,
+        p.y-size*.55,
+        size*.7,
+        size*.3,
+        -.5,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        p.x+size*.8,
+        p.y-size*.75,
+        size*.7,
+        size*.3,
+        .5,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    /* Rare sparkles */
+
+    if(rarity>=4){
+
+        ctx.fillStyle="#ffffff";
+
+        for(let i=0;i<5;i++){
+
+            const angle=
+                performance.now()/700+
+                i*Math.PI*2/5;
+
+            const sx=
+                p.x+
+                Math.cos(angle)*size*1.5;
+
+            const sy=
+                p.y-size+
+                Math.sin(angle)*size*1.5;
+
+            ctx.fillRect(
+                sx-2,
+                sy-2,
+                4,
+                4
+            );
+
+        }
+
+    }
+
+    ctx.shadowBlur=0;
+
+}
+
+
+/* =========================================================
+   SHOP BUILDINGS
+========================================================= */
+
+function drawShopBuilding(shop,type){
+
+    ctx.fillStyle=
+        type==="seed"
+        ? "#75472d"
+        : "#4c5968";
+
+    ctx.fillRect(
+        shop.x,
+        shop.y,
+        shop.width,
+        shop.height
+    );
+
+    ctx.fillStyle=
+        type==="seed"
+        ? "#d95750"
+        : "#4c82c4";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        shop.x-15,
+        shop.y
+    );
+
+    ctx.lineTo(
+        shop.x+shop.width/2,
+        shop.y-50
+    );
+
+    ctx.lineTo(
+        shop.x+shop.width+15,
+        shop.y
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+    ctx.fillStyle="#fff0bd";
+
+    ctx.fillRect(
+        shop.x+12,
+        shop.y+20,
+        shop.width-24,
+        48
+    );
+
+    ctx.fillStyle="#333";
+
+    ctx.font="bold 19px Arial";
+    ctx.textAlign="center";
+
+    ctx.fillText(
+        type==="seed"
+        ? "🌱 SEED SHOP"
+        : "🏪 SELL SHOP",
+        shop.x+shop.width/2,
+        shop.y+50
+    );
+
+    const d=Math.hypot(
+        player.x-(shop.x+shop.width/2),
+        player.y-(shop.y+shop.height/2)
+    );
+
+    if(d<175){
+
+        ctx.fillStyle="white";
+        ctx.font="bold 20px Arial";
+
+        ctx.fillText(
+            "[E] Open",
+            shop.x+shop.width/2,
+            shop.y+shop.height+35
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   AVATAR DATA
+========================================================= */
+
+const avatar={
+    fur:"#f292c0",
+    eye:"normal",
+    ears:"normal",
+    accessory:"none",
+    tail:"curly"
+};
+
+
+/* =========================================================
+   SQUINKA
+========================================================= */
+
+function drawSquinka(){
+
+    ctx.save();
+
+    ctx.translate(
+        player.x,
+        player.y
+    );
+
+    const bounce=
+        Math.sin(performance.now()/180)*2;
+
+    ctx.translate(0,bounce);
+
+    const fur=avatar.fur;
+
+    /* Shadow */
+
+    ctx.fillStyle="rgba(0,0,0,.22)";
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        0,
+        40,
+        35,
+        10,
+        0,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    /* Tail */
+
+    ctx.strokeStyle=fur;
+    ctx.lineCap="round";
+
+    if(avatar.tail==="curly"){
+
+        ctx.lineWidth=15;
+
+        ctx.beginPath();
+
+        ctx.moveTo(24,12);
+
+        ctx.bezierCurveTo(
+            55,10,
+            55,-30,
+            27,-34
+        );
+
+        ctx.stroke();
+
+    }
+
+    else if(avatar.tail==="fluffy"){
+
+        ctx.lineWidth=22;
+
+        ctx.beginPath();
+
+        ctx.moveTo(22,12);
+
+        ctx.bezierCurveTo(
+            55,5,
+            58,-30,
+            30,-38
+        );
+
+        ctx.stroke();
+
+    }
+
+    else{
+
+        ctx.lineWidth=13;
+
+        ctx.beginPath();
+
+        ctx.moveTo(22,12);
+
+        ctx.quadraticCurveTo(
+            75,-10,
+            55,-55
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    /* Body */
+
+    const bodyGradient=
+        ctx.createRadialGradient(
+            -8,-5,5,
+            0,10,42
+        );
+
+    bodyGradient.addColorStop(
+        0,
+        lightenColor(fur,35)
+    );
+
+    bodyGradient.addColorStop(
+        .55,
+        fur
+    );
+
+    bodyGradient.addColorStop(
+        1,
+        darkenColor(fur,25)
+    );
+
+    ctx.fillStyle=bodyGradient;
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        0,
+        12,
+        31,
+        36,
+        0,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    /* Belly */
+
+    ctx.fillStyle=lightenColor(
+        fur,
+        55
+    );
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        -4,
+        18,
+        17,
+        22,
+        0,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    /* Ears */
+
+    let earSize=1;
+
+    if(avatar.ears==="round")
+        earSize=.8;
+
+    if(avatar.ears==="large")
+        earSize=1.3;
+
+    ctx.fillStyle=fur;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        -27,
+        -31
+    );
+
+    ctx.quadraticCurveTo(
+        -40,
+        -60*earSize,
+        -14,
+        -52*earSize
+    );
+
+    ctx.quadraticCurveTo(
+        -4,
+        -44,
+        -8,
+        -29
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        27,
+        -31
+    );
+
+    ctx.quadraticCurveTo(
+        40,
+        -60*earSize,
+        14,
+        -52*earSize
+    );
+
+    ctx.quadraticCurveTo(
+        4,
+        -44,
+        8,
+        -29
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    /* Inner ears */
+
+    ctx.fillStyle=lightenColor(
+        fur,
+        35
+    );
+
+    ctx.beginPath();
+
+    ctx.moveTo(-27,-36);
+
+    ctx.quadraticCurveTo(
+        -32,
+        -51*earSize,
+        -19,
+        -46
+    );
+
+    ctx.quadraticCurveTo(
+        -13,
+        -42,
+        -13,
+        -34
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(27,-36);
+
+    ctx.quadraticCurveTo(
+        32,
+        -51*earSize,
+        19,
+        -46
+    );
+
+    ctx.quadraticCurveTo(
+        13,
+        -42,
+        13,
+        -34
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    /* Head */
+
+    const headGradient=
+        ctx.createRadialGradient(
+            -10,-35,5,
+            0,-20,40
+        );
+
+    headGradient.addColorStop(
+        0,
+        lightenColor(fur,40)
+    );
+
+    headGradient.addColorStop(
+        .6,
+        fur
+    );
+
+    headGradient.addColorStop(
+        1,
+        darkenColor(fur,25)
+    );
+
+    ctx.fillStyle=headGradient;
+
+    ctx.beginPath();
+
+    ctx.arc(
+        0,
+        -24,
+        35,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    /* Face shine */
+
+    ctx.fillStyle="rgba(255,255,255,.3)";
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        -13,
+        -37,
+        11,
+        7,
+        -.5,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    /* Eyes */
+
+    drawAvatarEyes();
+
+
+    /* Nose */
+
+    ctx.fillStyle="#b64c7d";
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        0,
+        -14,
+        5,
+        4,
+        0,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    /* Smile */
+
+    ctx.strokeStyle="#733752";
+    ctx.lineWidth=2.5;
+
+    ctx.beginPath();
+
+    ctx.arc(
+        0,
+        -11,
+        9,
+        .15,
+        Math.PI-.15
+    );
+
+    ctx.stroke();
+
+
+    /* Cheeks */
+
+    ctx.fillStyle="rgba(255,100,160,.35)";
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        -23,
+        -13,
+        7,
+        4,
+        0,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        23,
+        -13,
+        7,
+        4,
+        0,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    /* Feet */
+
+    ctx.fillStyle=darkenColor(
+        fur,
+        12
+    );
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        -17,
+        43,
+        13,
+        7,
+        -.15,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+    ctx.beginPath();
+
+    ctx.ellipse(
+        17,
+        43,
+        13,
+        7,
+        .15,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    /* Accessory */
+
+    drawAccessory();
+
+    ctx.restore();
+
+}
+
+
+/* =========================================================
+   EYES
+========================================================= */
+
+function drawAvatarEyes(){
+
+    ctx.fillStyle="#43253a";
+
+    if(avatar.eye==="big"){
+
+        ctx.beginPath();
+
+        ctx.ellipse(
+            -13,-25,
+            10,14,
+            0,0,Math.PI*2
+        );
+
+        ctx.fill();
+
+        ctx.beginPath();
+
+        ctx.ellipse(
+            13,-25,
+            10,14,
+            0,0,Math.PI*2
+        );
+
+        ctx.fill();
+
+    }
+
+    else if(avatar.eye==="happy"){
+
+        ctx.strokeStyle="#43253a";
+        ctx.lineWidth=4;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            -13,-25,
+            8,
+            Math.PI,
+            0
+        );
+
+        ctx.stroke();
+
+        ctx.beginPath();
+
+        ctx.arc(
+            13,-25,
+            8,
+            Math.PI,
+            0
+        );
+
+        ctx.stroke();
+
+    }
+
+    else{
+
+        ctx.beginPath();
+
+        ctx.ellipse(
+            -12,-25,
+            7,10,
+            0,0,Math.PI*2
+        );
+
+        ctx.fill();
+
+        ctx.beginPath();
+
+        ctx.ellipse(
+            12,-25,
+            7,10,
+            0,0,Math.PI*2
+        );
+
+        ctx.fill();
+
+    }
+
+
+    if(avatar.eye!=="happy"){
+
+        ctx.fillStyle="white";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            -14,
+            -28,
+            avatar.eye==="sparkle"?4:3,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+        ctx.beginPath();
+
+        ctx.arc(
+            10,
+            -28,
+            avatar.eye==="sparkle"?4:3,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+    }
+
+}
+
+
+/* =========================================================
+   ACCESSORIES
+========================================================= */
+
+function drawAccessory(){
+
+    if(avatar.accessory==="flower"){
+
+        ctx.fillStyle="#ff75b5";
+
+        for(let i=0;i<5;i++){
+
+            const a=i*Math.PI*2/5;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                Math.cos(a)*8,
+                -60+Math.sin(a)*8,
+                6,
+                0,
+                Math.PI*2
+            );
+
+            ctx.fill();
+
+        }
+
+        ctx.fillStyle="#ffd447";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            0,
+            -60,
+            5,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+    }
+
+    else if(avatar.accessory==="crown"){
+
+        ctx.fillStyle="#ffd447";
+
+        ctx.beginPath();
+
+        ctx.moveTo(-22,-56);
+        ctx.lineTo(-15,-78);
+        ctx.lineTo(-5,-64);
+        ctx.lineTo(0,-80);
+        ctx.lineTo(8,-64);
+        ctx.lineTo(19,-77);
+        ctx.lineTo(23,-56);
+
+        ctx.closePath();
+
+        ctx.fill();
+
+        ctx.strokeStyle="#c99316";
+        ctx.lineWidth=2;
+
+        ctx.stroke();
+
+    }
+
+    else if(avatar.accessory==="bow"){
+
+        ctx.fillStyle="#ff4f91";
+
+        ctx.beginPath();
+
+        ctx.ellipse(
+            -13,
+            -55,
+            13,
+            9,
+            -.3,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+        ctx.beginPath();
+
+        ctx.ellipse(
+            13,
+            -55,
+            13,
+            9,
+            .3,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+        ctx.fillStyle="#ffd0e4";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            0,
+            -55,
+            6,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+    }
+
+    else if(avatar.accessory==="leaf"){
+
+        ctx.fillStyle="#4da94c";
+
+        ctx.beginPath();
+
+        ctx.ellipse(
+            13,
+            -57,
+            9,
+            18,
+            .6,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+    }
+
+}
+
+
+/* =========================================================
+   COLOR HELPERS
+========================================================= */
+
+function lightenColor(hex,amount){
+
+    const c=parseInt(
+        hex.slice(1),
+        16
+    );
+
+    let r=(c>>16)+amount;
+    let g=((c>>8)&255)+amount;
+    let b=(c&255)+amount;
+
+    r=Math.min(255,r);
+    g=Math.min(255,g);
+    b=Math.min(255,b);
+
+    return "#"+
+        ((1<<24)+(r<<16)+(g<<8)+b)
+        .toString(16)
+        .slice(1);
+
+}
+
+function darkenColor(hex,amount){
+
+    return lightenColor(
+        hex,
+        -amount
+    );
+
+}
+
+
+/* =========================================================
+   WORLD
+========================================================= */
+
+function drawWorld(){
+
+    ctx.fillStyle="#75c94e";
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+    ctx.fillStyle="#6fc149";
+
+    for(let x=0;x<W;x+=80){
+
+        for(let y=0;y<H;y+=80){
+
+            if((x+y)%160===0){
+
+                ctx.fillRect(
+                    x,
+                    y,
+                    38,
+                    38
+                );
+
+            }
+
+        }
+
+    }
+
+    for(const f of flowers)
+        drawFlower(f);
+
+    for(const tree of trees)
+        drawTree(
+            tree.x,
+            tree.y
+        );
+
+    drawGarden();
+
+    drawShopBuilding(
+        seedShopBuilding,
+        "seed"
+    );
+
+    drawShopBuilding(
+        sellShopBuilding,
+        "sell"
+    );
+
+    drawSquinka();
+
+}
+
+
+/* =========================================================
+   INTERACTION
+========================================================= */
+
+function interact(){
+
+    const seedDistance=Math.hypot(
+
+        player.x-
+        (
+            seedShopBuilding.x+
+            seedShopBuilding.width/2
+        ),
+
+        player.y-
+        (
+            seedShopBuilding.y+
+            seedShopBuilding.height/2
+        )
+
+    );
+
+    if(seedDistance<175){
+
+        openSeedShop();
+
+        return;
+
+    }
+
+
+    const sellDistance=Math.hypot(
+
+        player.x-
+        (
+            sellShopBuilding.x+
+            sellShopBuilding.width/2
+        ),
+
+        player.y-
+        (
+            sellShopBuilding.y+
+            sellShopBuilding.height/2
+        )
+
+    );
+
+    if(sellDistance<175){
+
+        openSellShop();
+
+        return;
+
+    }
+
+
+    let closest=null;
+    let closestDistance=Infinity;
+
+    for(const p of plantSpots){
+
+        const d=Math.hypot(
+            player.x-p.x,
+            player.y-p.y
+        );
+
+        if(d<closestDistance){
+
+            closestDistance=d;
+            closest=p;
+
+        }
+
+    }
+
+
+    if(
+        closest &&
+        closestDistance<65
+    ){
+
+        if(!closest.planted){
+
+            if(seedCount<=0){
+
+                showMessage(
+                    "❌ You don't have any seeds!"
+                );
+
+                return;
+
+            }
+
+            seedCount--;
+
+            closest.planted=true;
+            closest.grown=false;
+            closest.timer=0;
+            closest.seedId=holdingSeed;
+            closest.readyNotified=false;
+
+            showMessage(
+                "🌱 Planted "+
+                seeds[holdingSeed].name+
+                "!"
+            );
+
+            updateUI();
+
+        }
+
+        else if(closest.grown){
+
+            const seed=
+                seeds[closest.seedId];
+
+            crops++;
+
+            showMessage(
+                "🥕 Harvested "+
+                seed.name+
+                "! Take it to the Selling Shop."
+            );
+
+            closest.planted=false;
+            closest.grown=false;
+            closest.timer=0;
+            closest.seedId=null;
+            closest.readyNotified=false;
+
+            updateUI();
+
+        }
+
+        else{
+
+            const seed=
+                seeds[closest.seedId];
+
+            const left=Math.ceil(
+                seed.growthTime-
+                closest.timer
+            );
+
+            showMessage(
+                "🌱 "+
+                seed.name+
+                " grows in "+
+                left+
+                " seconds"
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   GROWTH
+========================================================= */
+
+let lastPlantTime=
+    performance.now();
+
+function updatePlants(){
+
+    if(gamePaused) return;
+
+    const now=
+        performance.now();
+
+    const delta=
+        (now-lastPlantTime)/1000;
+
+    lastPlantTime=now;
+
+    for(const p of plantSpots){
+
+        if(p.planted&&!p.grown){
+
+            const seed=
+                seeds[p.seedId];
+
+            p.timer+=delta;
+
+            if(
+                p.timer>=
+                seed.growthTime
+            ){
+
+                p.grown=true;
+
+                if(!p.readyNotified){
+
+                    p.readyNotified=true;
+
+                    showMessage(
+                        "🔔 READY! "+
+                        seed.name+
+                        " is ready to harvest!"
+                    );
+
+                }
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   SEED SHOP
+========================================================= */
+
+function openSeedShop(){
+
+    document.getElementById(
+        "seedShop"
+    ).style.display="block";
+
+    renderSeedShop();
+
+}
+
+function closeSeedShop(){
+
+    document.getElementById(
+        "seedShop"
+    ).style.display="none";
+
+}
+
+
+function renderSeedShop(){
+
+    const list=
+        document.getElementById(
+            "seedItems"
+        );
+
+    const search=
+        document.getElementById(
+            "seedSearch"
+        ).value.toLowerCase();
+
+    const rarity=
+        document.getElementById(
+            "rarityFilter"
+        ).value;
+
+    const sort=
+        document.getElementById(
+            "sortFilter"
+        ).value;
+
+
+    let filtered=
+        seeds.filter(seed=>{
+
+            return(
+
+                seed.name
+                    .toLowerCase()
+                    .includes(search)
+
+                &&
+
+                (
+                    rarity==="all"||
+                    seed.rarity===rarity
+                )
+
+            );
+
+        });
+
+
+    /* CHEAPEST FIRST */
+
+    if(sort==="cheap"){
+
+        filtered.sort(
+            (a,b)=>
+                a.price-b.price||
+                a.id-b.id
+        );
+
+    }
+
+    else if(sort==="expensive"){
+
+        filtered.sort(
+            (a,b)=>
+                b.price-a.price||
+                a.id-b.id
+        );
+
+    }
+
+    else if(sort==="name"){
+
+        filtered.sort(
+            (a,b)=>
+                a.name.localeCompare(
+                    b.name
+                )
+        );
+
+    }
+
+    else if(sort==="rarity"){
+
+        filtered.sort(
+            (a,b)=>
+                a.rarityIndex-b.rarityIndex||
+                a.price-b.price
+        );
+
+    }
+
+
+    list.innerHTML="";
+
+    document.getElementById(
+        "noSeeds"
+    ).style.display=
+        filtered.length===0
+        ?"block"
+        :"none";
+
+
+    for(const seed of filtered){
+
+        const card=
+            document.createElement(
+                "div"
+            );
+
+        card.className="seedCard";
+
+
+        /* SEED LOOK */
+
+        const preview=
+            document.createElement(
+                "div"
+            );
+
+        preview.className=
+            "seedPreview";
+
+        const miniCanvas=
+            document.createElement(
+                "canvas"
+            );
+
+        miniCanvas.width=82;
+        miniCanvas.height=82;
+
+        preview.appendChild(
+            miniCanvas
+        );
+
+        drawSeedPreview(
+            miniCanvas,
+            seed
+        );
+
+
+        /* PRICE BOX */
+
+        const priceBox=
+            document.createElement(
+                "div"
+            );
+
+        priceBox.className=
+            "seedPriceBox";
+
+        priceBox.textContent=
+            "🪙 "+
+            seed.price+
+            " coins";
+
+
+        /* INFORMATION */
+
+        const info=
+            document.createElement(
+                "div"
+            );
+
+        info.className=
+            "seedInfo";
+
+
+        const name=
+            document.createElement(
+                "div"
+            );
+
+        name.className=
+            "seedName";
+
+        name.textContent=
+            seed.name;
+
+
+        const rarityText=
+            document.createElement(
+                "div"
+            );
+
+        rarityText.className=
+            "seedRarity";
+
+        rarityText.textContent=
+            "⭐ "+
+            seed.rarity;
+
+        rarityText.style.color=
+            seed.color;
+
+
+        const stats=
+            document.createElement(
+                "div"
+            );
+
+        stats.className=
+            "seedStats";
+
+        stats.textContent=
+            "🥕 Sell: "+
+            seed.value+
+            " coins • ⏱ "+
+            seed.growthTime+
+            "s";
+
+
+        info.appendChild(name);
+        info.appendChild(rarityText);
+        info.appendChild(stats);
+
+
+        /* BUY EXACTLY 1 */
+
+        const button=
+            document.createElement(
+                "button"
+            );
+
+        button.className=
+            "buyButton";
+
+        button.textContent=
+            "BUY 1 SEED";
+
+        button.disabled=
+            coins<seed.price;
+
+        button.onclick=()=>{
+            buySeed(seed.id);
+        };
+
+
+        card.appendChild(preview);
+        card.appendChild(info);
+        card.appendChild(priceBox);
+        card.appendChild(button);
+
+        list.appendChild(card);
+
+    }
+
+}
+
+
+/* =========================================================
+   SEED PREVIEW
+========================================================= */
+
+function drawSeedPreview(
+    canvas,
+    seed
+){
+
+    const c=
+        canvas.getContext("2d");
+
+    c.clearRect(
+        0,
+        0,
+        82,
+        82
+    );
+
+
+    c.fillStyle="#17291b";
+
+    c.fillRect(
+        0,
+        0,
+        82,
+        82
+    );
+
+
+    const x=41;
+    const y=43;
+
+    const rarity=
+        seed.rarityIndex;
+
+    const size=
+        9+
+        rarity*2.5;
+
+
+    if(rarity>=3){
+
+        c.shadowBlur=
+            7+
+            rarity*3;
+
+        c.shadowColor=
+            seed.color;
+
+    }
+
+
+    /* Shadow */
+
+    c.fillStyle="rgba(0,0,0,.3)";
+
+    c.beginPath();
+
+    c.ellipse(
+        x,
+        y+17,
+        size+4,
+        5,
+        0,
+        0,
+        Math.PI*2
+    );
+
+    c.fill();
+
+
+    c.fillStyle=
+        seed.color;
+
+
+    if(seed.shape===0){
+
+        c.beginPath();
+
+        c.arc(
+            x,
+            y,
+            size,
+            0,
+            Math.PI*2
+        );
+
+        c.fill();
+
+    }
+
+    else if(seed.shape===1){
+
+        c.beginPath();
+
+        c.moveTo(
+            x,
+            y-size
+        );
+
+        c.lineTo(
+            x+size,
+            y
+        );
+
+        c.lineTo(
+            x,
+            y+size
+        );
+
+        c.lineTo(
+            x-size,
+            y
+        );
+
+        c.closePath();
+
+        c.fill();
+
+    }
+
+    else if(seed.shape===2){
+
+        for(let i=0;i<6;i++){
+
+            const a=i*Math.PI/3;
+
+            c.beginPath();
+
+            c.arc(
+                x+Math.cos(a)*size*.7,
+                y+Math.sin(a)*size*.7,
+                size*.5,
+                0,
+                Math.PI*2
+            );
+
+            c.fill();
+
+        }
+
+    }
+
+    else if(seed.shape===3){
+
+        c.beginPath();
+
+        c.roundRect(
+            x-size,
+            y-size,
+            size*2,
+            size*2,
+            5
+        );
+
+        c.fill();
+
+    }
+
+    else if(seed.shape===4){
+
+        c.beginPath();
+
+        c.arc(
+            x,
+            y,
+            size*1.25,
+            0,
+            Math.PI*2
+        );
+
+        c.fill();
+
+    }
+
+    else if(seed.shape===5){
+
+        c.beginPath();
+
+        c.moveTo(
+            x,
+            y-size
+        );
+
+        c.lineTo(
+            x+size,
+            y+size
+        );
+
+        c.lineTo(
+            x-size,
+            y+size
+        );
+
+        c.closePath();
+
+        c.fill();
+
+    }
+
+    else if(seed.shape===6){
+
+        c.beginPath();
+
+        c.ellipse(
+            x,
+            y,
+            size*.7,
+            size*1.3,
+            0,
+            0,
+            Math.PI*2
+        );
+
+        c.fill();
+
+    }
+
+    else if(seed.shape===7){
+
+        c.beginPath();
+
+        for(let i=0;i<10;i++){
+
+            const a=
+                -Math.PI/2+
+                i*Math.PI/5;
+
+            const r=
+                i%2===0
+                ?size*1.3
+                :size*.55;
+
+            const px=
+                x+
+                Math.cos(a)*r;
+
+            const py=
+                y+
+                Math.sin(a)*r;
+
+            if(i===0)
+                c.moveTo(px,py);
+            else
+                c.lineTo(px,py);
+
+        }
+
+        c.closePath();
+
+        c.fill();
+
+    }
+
+    else if(seed.shape===8){
+
+        c.beginPath();
+
+        c.moveTo(
+            x,
+            y+size
+        );
+
+        c.bezierCurveTo(
+            x-size*1.5,
+            y,
+            x-size,
+            y-size,
+            x,
+            y-size*.3
+        );
+
+        c.bezierCurveTo(
+            x+size,
+            y-size,
+            x+size*1.5,
+            y,
+            x,
+            y+size
+        );
+
+        c.fill();
+
+    }
+
+    else if(seed.shape===9){
+
+        c.beginPath();
+
+        for(let i=0;i<6;i++){
+
+            const a=
+                i*Math.PI/3;
+
+            const px=
+                x+
+                Math.cos(a)*size;
+
+            const py=
+                y+
+                Math.sin(a)*size;
+
+            if(i===0)
+                c.moveTo(px,py);
+            else
+                c.lineTo(px,py);
+
+        }
+
+        c.closePath();
+
+        c.fill();
+
+    }
+
+    else if(seed.shape===10){
+
+        c.beginPath();
+
+        c.ellipse(
+            x,
+            y,
+            size*.7,
+            size*1.4,
+            -.5,
+            0,
+            Math.PI*2
+        );
+
+        c.fill();
+
+    }
+
+    else{
+
+        for(let i=0;i<8;i++){
+
+            const a=i*Math.PI/4;
+
+            c.beginPath();
+
+            c.moveTo(
+                x,
+                y
+            );
+
+            c.lineTo(
+                x+
+                Math.cos(a)*
+                size*1.5,
+
+                y+
+                Math.sin(a)*
+                size*1.5
+            );
+
+            c.lineWidth=4;
+
+            c.strokeStyle=
+                seed.color;
+
+            c.stroke();
+
+        }
+
+        c.beginPath();
+
+        c.arc(
+            x,
+            y,
+            size*.6,
+            0,
+            Math.PI*2
+        );
+
+        c.fill();
+
+    }
+
+
+    /* Shine */
+
+    c.shadowBlur=0;
+
+    c.fillStyle=
+        "rgba(255,255,255,.75)";
+
+    c.beginPath();
+
+    c.arc(
+        x-size*.3,
+        y-size*.35,
+        Math.max(
+            2,
+            size*.18
+        ),
+        0,
+        Math.PI*2
+    );
+
+    c.fill();
+
+
+    /* Rare particles */
+
+    if(rarity>=4){
+
+        c.fillStyle="#ffffff";
+
+        for(let i=0;i<4;i++){
+
+            const a=
+                i*Math.PI/2+.3;
+
+            c.fillRect(
+
+                x+
+                Math.cos(a)*
+                size*1.7-
+                2,
+
+                y+
+                Math.sin(a)*
+                size*1.7-
+                2,
+
+                4,
+                4
+
+            );
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   BUY SEED
+========================================================= */
+
+function buySeed(id){
+
+    const seed=
+        seeds[id];
+
+    if(coins<seed.price){
+
+        showMessage(
+            "❌ Not enough coins!"
+        );
+
+        return;
+
+    }
+
+
+    /*
+        BUYING GIVES EXACTLY
+        ONE SEED.
+    */
+
+    coins-=
+        seed.price;
+
+    seedCount++;
+
+    holdingSeed=
+        id;
+
+    updateUI();
+
+    updateHolding();
+
+    showMessage(
+        "🌱 Bought 1 "+
+        seed.name+
+        "!"
+    );
+
+    renderSeedShop();
+
+}
+
+
+/* =========================================================
+   SELL SHOP
+========================================================= */
+
+function openSellShop(){
+
+    document.getElementById(
+        "sellShop"
+    ).style.display="block";
+
+    renderSellShop();
+
+}
+
+function closeSellShop(){
+
+    document.getElementById(
+        "sellShop"
+    ).style.display="none";
+
+}
+
+
+function renderSellShop(){
+
+    const list=
+        document.getElementById(
+            "sellItems"
+        );
+
+    list.innerHTML="";
+
+
+    if(crops<=0){
+
+        list.innerHTML=`
+
+        <div style="
+            text-align:center;
+            padding:50px;
+            font-size:20px;
+        ">
+
+            🥕 You have no harvested crops.<br><br>
+
+            Grow plants and harvest them first!
+
+        </div>`;
+
+        return;
+
+    }
+
+
+    const seed=
+        seeds[holdingSeed];
+
+
+    const card=
+        document.createElement(
+            "div"
+        );
+
+    card.className=
+        "sellCard";
+
+
+    const preview=
+        document.createElement(
+            "div"
+        );
+
+    preview.className=
+        "seedPreview";
+
+
+    const miniCanvas=
+        document.createElement(
+            "canvas"
+        );
+
+    miniCanvas.width=82;
+    miniCanvas.height=82;
+
+    preview.appendChild(
+        miniCanvas
+    );
+
+    drawSeedPreview(
+        miniCanvas,
+        seed
+    );
+
+
+    const info=
+        document.createElement(
+            "div"
+        );
+
+    info.className=
+        "seedInfo";
+
+
+    const name=
+        document.createElement(
+            "div"
+        );
+
+    name.className=
+        "seedName";
+
+    name.textContent=
+        "🥕 Harvested Crops";
+
+
+    const stats=
+        document.createElement(
+            "div"
+        );
+
+    stats.className=
+        "seedStats";
+
+    stats.textContent=
+        crops+
+        " crops • "+
+        seed.value+
+        " coins each";
+
+
+    info.appendChild(name);
+    info.appendChild(stats);
+
+
+    const button=
+        document.createElement(
+            "button"
+        );
+
+    button.className=
+        "sellButton";
+
+    button.textContent=
+        "SELL ALL";
+
+    button.onclick=()=>{
+        sellAllCrops();
+    };
+
+
+    card.appendChild(preview);
+    card.appendChild(info);
+    card.appendChild(button);
+
+    list.appendChild(card);
+
+}
+
+
+function sellAllCrops(){
+
+    if(crops<=0){
+
+        showMessage(
+            "❌ No crops to sell!"
+        );
+
+        return;
+
+    }
+
+
+    const seed=
+        seeds[holdingSeed];
+
+    const total=
+        crops*
+        seed.value;
+
+    const amount=
+        crops;
+
+    coins+=
+        total;
+
+    crops=0;
+
+    updateUI();
+
+    renderSellShop();
+
+    showMessage(
+        "💰 Sold "+
+        amount+
+        " crops for "+
+        total+
+        " coins!"
+    );
+
+}
+
+
+/* =========================================================
+   UI
+========================================================= */
+
+function updateUI(){
+
+    document.getElementById(
+        "coins"
+    ).textContent=
+        coins;
+
+    document.getElementById(
+        "seedCount"
+    ).textContent=
+        seedCount;
+
+    document.getElementById(
+        "crops"
+    ).textContent=
+        crops;
+
+}
+
+
+function updateHolding(){
+
+    document.getElementById(
+        "holding"
+    ).textContent=
+        seeds[holdingSeed].name+
+        " ["+
+        seeds[holdingSeed].rarity+
+        "]";
+
+}
+
+
+/* =========================================================
+   MESSAGE
+========================================================= */
+
+let messageTimer;
+
+function showMessage(text){
+
+    const box=
+        document.getElementById(
+            "message"
+        );
+
+    box.textContent=
+        text;
+
+    box.style.display=
+        "block";
+
+    clearTimeout(
+        messageTimer
+    );
+
+    messageTimer=
+        setTimeout(
+            ()=>{
+                box.style.display=
+                    "none";
+            },
+            2800
+        );
+
+}
+
+
+/* =========================================================
+   30 SONGS
+========================================================= */
+
+const songNames=[
+
+    "Garden Morning",
+    "Pink Clouds",
+    "Tiny Adventure",
+    "Crystal Garden",
+    "Sunny Fields",
+    "Cat Walk",
+    "Rainbow",
+    "Little Pond",
+    "Magic Seeds",
+    "Cozy Farm",
+    "Moonlight",
+    "Berry Patch",
+    "Starry Night",
+    "Happy Harvest",
+    "Forest Breeze",
+    "Golden Day",
+    "Rain Drops",
+    "Candy Garden",
+    "Dreamy Cat",
+    "Firefly",
+    "Ocean Garden",
+    "Mystic Bloom",
+    "Soft Sunset",
+    "Rainbow Road",
+    "Garden Dreams",
+    "Butterfly Dance",
+    "Morning Dew",
+    "Secret Garden",
+    "Squinka's Theme",
+    "Big Harvest"
+
+];
+
+
+const scales=[
+
+    [261.63,293.66,329.63,392,440,493.88],
+
+    [293.66,329.63,369.99,440,493.88,554.37],
+
+    [329.63,392,440,493.88,587.33,659.25],
+
+    [220,261.63,293.66,349.23,392,440],
+
+    [349.23,392,440,493.88,523.25,587.33],
+
+    [246.94,293.66,329.63,392,440,523.25]
+
+];
+
+
+const songs=[];
+
+
+for(let s=0;s<30;s++){
+
+    const scale=
+        scales[s%scales.length];
+
+    const notes=[];
+
+    for(let i=0;i<40;i++){
+
+        const index=
+            (
+                i*(s+3)+
+                Math.floor(i/4)*(s+1)
+            )
+            %
+            scale.length;
+
+        let note=
+            scale[index];
+
+        if((i+s)%7===0)
+            note*=2;
+
+        if((i+s)%11===0)
+            note*=.5;
+
+        notes.push(note);
+
+    }
+
+    songs.push({
+
+        name:
+            songNames[s],
+
+        notes:
+            notes,
+
+        tempo:
+            560+
+            ((s*43)%210)
+
+    });
+
+}
+
+
+/* =========================================================
+   AUDIO
+========================================================= */
+
+let audioContext=null;
+let muted=false;
+let currentSong=0;
+let noteIndex=0;
+let musicTimer=null;
+let musicStarted=false;
+
+let recentSongs=[];
+let autoSongTimer=null;
+
+
+function startAudio(){
+
+    if(!audioContext){
+
+        audioContext=
+            new(
+                window.AudioContext||
+                window.webkitAudioContext
+            )();
+
+    }
+
+    if(
+        audioContext.state===
+        "suspended"
+    ){
+
+        audioContext.resume();
+
+    }
+
+}
+
+
+function playNote(
+    freq,
+    duration
+){
+
+    if(
+        !audioContext||
+        muted
+    )
+        return;
+
+
+    const osc=
+        audioContext.createOscillator();
+
+    const gain=
+        audioContext.createGain();
+
+
+    const types=[
+
+        "triangle",
+        "sine",
+        "sine",
+        "triangle",
+        "square"
+
+    ];
+
+
+    osc.type=
+        types[
+            currentSong%
+            types.length
+        ];
+
+
+    osc.frequency.value=
+        freq;
+
+
+    gain.gain.setValueAtTime(
+        .0001,
+        audioContext.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        .055,
+        audioContext.currentTime+.04
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        .0001,
+        audioContext.currentTime+duration
+    );
+
+
+    osc.connect(gain);
+
+    gain.connect(
+        audioContext.destination
+    );
+
+
+    osc.start();
+
+    osc.stop(
+        audioContext.currentTime+
+        duration
+    );
+
+}
+
+
+/* =========================================================
+   CHOOSE A SONG
+========================================================= */
+
+function chooseNextSong(){
+
+    const available=[];
+
+
+    for(let i=0;i<songs.length;i++){
+
+        if(
+            !recentSongs.includes(i)
+        ){
+
+            available.push(i);
+
+        }
+
+    }
+
+
+    const pool=
+        available.length
+        ?
+        available
+        :
+        Array.from(
+            {
+                length:30
+            },
+            (_,i)=>i
+        );
+
+
+    const choice=
+        pool[
+            Math.floor(
+                Math.random()*
+                pool.length
+            )
+        ];
+
+
+    currentSong=
+        choice;
+
+
+    recentSongs.push(
+        choice
+    );
+
+
+    /*
+        Remember the last 20
+        songs so they don't
+        immediately repeat.
+    */
+
+    if(
+        recentSongs.length>20
+    ){
+
+        recentSongs.shift();
+
+    }
+
+}
+
+
+/* =========================================================
+   PLAY CURRENT SONG
+========================================================= */
+
+function playCurrentSong(){
+
+    startAudio();
+
+    clearInterval(
+        musicTimer
+    );
+
+    clearTimeout(
+        autoSongTimer
+    );
+
+
+    const song=
+        songs[currentSong];
+
+
+    noteIndex=0;
+
+
+    document.getElementById(
+        "songName"
+    ).textContent=
+        song.name;
+
+
+    musicStarted=true;
+
+
+    if(!muted){
+
+        playNote(
+            song.notes[0],
+            .5
+        );
+
+    }
+
+
+    noteIndex=1;
+
+
+    musicTimer=
+        setInterval(
+            ()=>{
+
+                if(!muted){
+
+                    playNote(
+                        song.notes[noteIndex],
+                        .5
+                    );
+
+                }
+
+
+                noteIndex++;
+
+
+                if(
+                    noteIndex>=
+                    song.notes.length
+                ){
+
+                    noteIndex=0;
+
+                }
+
+            },
+            song.tempo
+        );
+
+
+    /*
+        Automatically change songs
+        after at least 21 seconds.
+    */
+
+    autoSongTimer=
+        setTimeout(
+            ()=>{
+
+                if(!muted){
+
+                    chooseNextSong();
+
+                    playCurrentSong();
+
+                }
+
+            },
+            Math.max(
+                21000,
+                song.notes.length*
+                song.tempo+
+                1000
+            )
+        );
+
+}
+
+
+/* =========================================================
+   MUSIC CONTROLS
+========================================================= */
+
+function nextSong(){
+
+    currentSong=
+        (currentSong+1)%30;
+
+    recentSongs.push(
+        currentSong
+    );
+
+    if(
+        recentSongs.length>20
+    ){
+
+        recentSongs.shift();
+
+    }
+
+    playCurrentSong();
+
+    showMessage(
+        "🎵 "+
+        songs[currentSong].name
+    );
+
+}
+
+
+function previousSong(){
+
+    currentSong=
+        (currentSong-1+30)%30;
+
+    recentSongs.push(
+        currentSong
+    );
+
+    if(
+        recentSongs.length>20
+    ){
+
+        recentSongs.shift();
+
+    }
+
+    playCurrentSong();
+
+    showMessage(
+        "🎵 "+
+        songs[currentSong].name
+    );
+
+}
+
+
+function toggleMute(){
+
+    muted=
+        !muted;
+
+
+    document.getElementById(
+        "musicButton"
+    ).textContent=
+        muted
+        ?"🔇"
+        :"🔊";
+
+
+    if(!muted){
+
+        playCurrentSong();
+
+    }
+
+    else{
+
+        clearInterval(
+            musicTimer
+        );
+
+        clearTimeout(
+            autoSongTimer
+        );
+
+        showMessage(
+            "🔇 Music muted"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   SONG MENU
+========================================================= */
+
+function openSongMenu(){
+
+    startAudio();
+
+    document.getElementById(
+        "songMenu"
+    ).style.display=
+        "block";
+
+    renderSongMenu();
+
+}
+
+
+function closeSongMenu(){
+
+    document.getElementById(
+        "songMenu"
+    ).style.display=
+        "none";
+
+}
+
+
+function renderSongMenu(){
+
+    const list=
+        document.getElementById(
+            "songList"
+        );
+
+    list.innerHTML="";
+
+
+    songs.forEach(
+        (song,index)=>{
+
+            const row=
+                document.createElement(
+                    "div"
+                );
+
+            row.className=
+                "songOption";
+
+
+            if(
+                index===
+                currentSong
+            ){
+
+                row.classList.add(
+                    "selected"
+                );
+
+            }
+
+
+            const name=
+                document.createElement(
+                    "span"
+                );
+
+            name.textContent=
+                (index+1)+
+                ". "+
+                song.name;
+
+
+            const button=
+                document.createElement(
+                    "button"
+                );
+
+            button.className=
+                "songPlay";
+
+            button.textContent=
+                index===
+                currentSong
+                ?
+                "Playing"
+                :
+                "Play";
+
+
+            button.onclick=e=>{
+
+                e.stopPropagation();
+
+                currentSong=
+                    index;
+
+                playCurrentSong();
+
+                renderSongMenu();
+
+            };
+
+
+            row.onclick=()=>{
+
+                currentSong=
+                    index;
+
+                playCurrentSong();
+
+                renderSongMenu();
+
+            };
+
+
+            row.appendChild(name);
+
+            row.appendChild(button);
+
+            list.appendChild(row);
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   AVATAR EDITOR
+========================================================= */
+
+function openAvatar(){
+
+    document.getElementById(
+        "avatarEditor"
+    ).style.display=
+        "block";
+
+    drawAvatarPreview();
+
+}
+
+
+function closeAvatar(){
+
+    document.getElementById(
+        "avatarEditor"
+    ).style.display=
+        "none";
+
+    showMessage(
+        "🐱 Avatar saved!"
+    );
+
+}
+
+
+/* Avatar preview */
+
+function drawAvatarPreview(){
+
+    const c=
+        document.getElementById(
+            "avatarCanvas"
+        );
+
+    const a=
+        c.getContext("2d");
+
+
+    a.clearRect(
+        0,
+        0,
+        c.width,
+        c.height
+    );
+
+
+    a.fillStyle=
+        "#72bd55";
+
+    a.fillRect(
+        0,
+        0,
+        c.width,
+        c.height
+    );
+
+
+    a.save();
+
+    a.translate(
+        150,
+        230
+    );
+
+
+    const fur=
+        avatar.fur;
+
+
+    /* Tail */
+
+    a.strokeStyle=
+        fur;
+
+    a.lineCap=
+        "round";
+
+
+    if(
+        avatar.tail==="fluffy"
+    )
+        a.lineWidth=34;
+    else
+        a.lineWidth=22;
+
+
+    a.beginPath();
+
+    a.moveTo(
+        45,
+        40
+    );
+
+    a.bezierCurveTo(
+        115,
+        30,
+        115,
+        -60,
+        55,
+        -65
+    );
+
+    a.stroke();
+
+
+    /* Body */
+
+    a.fillStyle=
+        fur;
+
+    a.beginPath();
+
+    a.ellipse(
+        0,
+        50,
+        65,
+        80,
+        0,
+        0,
+        Math.PI*2
+    );
+
+    a.fill();
+
+
+    /* Belly */
+
+    a.fillStyle=
+        lightenColor(
+            fur,
+            55
+        );
+
+    a.beginPath();
+
+    a.ellipse(
+        -7,
+        60,
+        37,
+        48,
+        0,
+        0,
+        Math.PI*2
+    );
+
+    a.fill();
+
+
+    /* Ears */
+
+    let earScale=1;
+
+    if(
+        avatar.ears==="round"
+    )
+        earScale=.8;
+
+    if(
+        avatar.ears==="large"
+    )
+        earScale=1.35;
+
+
+    a.fillStyle=
+        fur;
+
+
+    a.beginPath();
+
+    a.moveTo(
+        -55,
+        -60
+    );
+
+    a.quadraticCurveTo(
+        -85,
+        -135*earScale,
+        -30,
+        -112
+    );
+
+    a.quadraticCurveTo(
+        -5,
+        -95,
+        -15,
+        -58
+    );
+
+    a.closePath();
+
+    a.fill();
+
+
+    a.beginPath();
+
+    a.moveTo(
+        55,
+        -60
+    );
+
+    a.quadraticCurveTo(
+        85,
+        -135*earScale,
+        30,
+        -112
+    );
+
+    a.quadraticCurveTo(
+        5,
+        -95,
+        15,
+        -58
+    );
+
+    a.closePath();
+
+    a.fill();
+
+
+    /* Head */
+
+    a.fillStyle=
+        fur;
+
+    a.beginPath();
+
+    a.arc(
+        0,
+        -55,
+        75,
+        0,
+        Math.PI*2
+    );
+
+    a.fill();
+
+
+    /* Eyes */
+
+    a.fillStyle=
+        "#43253a";
+
+
+    if(
+        avatar.eye==="happy"
+    ){
+
+        a.strokeStyle=
+            "#43253a";
+
+        a.lineWidth=7;
+
+
+        a.beginPath();
+
+        a.arc(
+            -27,
+            -58,
+            17,
+            Math.PI,
+            0
+        );
+
+        a.stroke();
+
+
+        a.beginPath();
+
+        a.arc(
+            27,
+            -58,
+            17,
+            Math.PI,
+            0
+        );
+
+        a.stroke();
+
+    }
+
+    else{
+
+        const eyeSize=
+            avatar.eye==="big"
+            ?
+            18
+            :
+            13;
+
+
+        a.beginPath();
+
+        a.ellipse(
+            -27,
+            -58,
+            eyeSize,
+            eyeSize*1.4,
+            0,
+            0,
+            Math.PI*2
+        );
+
+        a.fill();
+
+
+        a.beginPath();
+
+        a.ellipse(
+            27,
+            -58,
+            eyeSize,
+            eyeSize*1.4,
+            0,
+            0,
+            Math.PI*2
+        );
+
+        a.fill();
+
+
+        a.fillStyle=
+            "white";
+
+
+        a.beginPath();
+
+        a.arc(
+            -32,
+            -64,
+            avatar.eye==="sparkle"
+            ?
+            7
+            :
+            5,
+            0,
+            Math.PI*2
+        );
+
+        a.fill();
+
+
+        a.beginPath();
+
+        a.arc(
+            22,
+            -64,
+            avatar.eye==="sparkle"
+            ?
+            7
+            :
+            5,
+            0,
+            Math.PI*2
+        );
+
+        a.fill();
+
+    }
+
+
+    /* Nose */
+
+    a.fillStyle=
+        "#b64c7d";
+
+    a.beginPath();
+
+    a.ellipse(
+        0,
+        -35,
+        8,
+        6,
+        0,
+        0,
+        Math.PI*2
+    );
+
+    a.fill();
+
+
+    /* Smile */
+
+    a.strokeStyle=
+        "#733752";
+
+    a.lineWidth=4;
+
+    a.beginPath();
+
+    a.arc(
+        0,
+        -28,
+        16,
+        .15,
+        Math.PI-.15
+    );
+
+    a.stroke();
+
+
+    /* Feet */
+
+    a.fillStyle=
+        darkenColor(
+            fur,
+            12
+        );
+
+
+    a.beginPath();
+
+    a.ellipse(
+        -35,
+        115,
+        28,
+        15,
+        -.15,
+        0,
+        Math.PI*2
+    );
+
+    a.fill();
+
+
+    a.beginPath();
+
+    a.ellipse(
+        35,
+        115,
+        28,
+        15,
+        .15,
+        0,
+        Math.PI*2
+    );
+
+    a.fill();
+
+
+    /* Accessories */
+
+    if(
+        avatar.accessory==="flower"
+    ){
+
+        a.fillStyle=
+            "#ff75b5";
+
+        for(let i=0;i<5;i++){
+
+            const angle=
+                i*Math.PI*2/5;
+
+            a.beginPath();
+
+            a.arc(
+                Math.cos(angle)*17,
+                -130+
+                Math.sin(angle)*17,
+                11,
+                0,
+                Math.PI*2
+            );
+
+            a.fill();
+
+        }
+
+        a.fillStyle=
+            "#ffd447";
+
+        a.beginPath();
+
+        a.arc(
+            0,
+            -130,
+            9,
+            0,
+            Math.PI*2
+        );
+
+        a.fill();
+
+    }
+
+    else if(
+        avatar.accessory==="crown"
+    ){
+
+        a.fillStyle=
+            "#ffd447";
+
+        a.beginPath();
+
+        a.moveTo(
+            -48,
+            -122
+        );
+
+        a.lineTo(
+            -33,
+            -165
+        );
+
+        a.lineTo(
+            -10,
+            -140
+        );
+
+        a.lineTo(
+            0,
+            -170
+        );
+
+        a.lineTo(
+            15,
+            -140
+        );
+
+        a.lineTo(
+            38,
+            -165
+        );
+
+        a.lineTo(
+            48,
+            -122
+        );
+
+        a.closePath();
+
+        a.fill();
+
+    }
+
+    else if(
+        avatar.accessory==="bow"
+    ){
+
+        a.fillStyle=
+            "#ff4f91";
+
+        a.beginPath();
+
+        a.ellipse(
+            -27,
+            -125,
+            25,
+            17,
+            -.3,
+            0,
+            Math.PI*2
+        );
+
+        a.fill();
+
+
+        a.beginPath();
+
+        a.ellipse(
+            27,
+            -125,
+            25,
+            17,
+            .3,
+            0,
+            Math.PI*2
+        );
+
+        a.fill();
+
+
+        a.fillStyle=
+            "#ffd0e4";
+
+        a.beginPath();
+
+        a.arc(
+            0,
+            -125,
+            12,
+            0,
+            Math.PI*2
+        );
+
+        a.fill();
+
+    }
+
+    else if(
+        avatar.accessory==="leaf"
+    ){
+
+        a.fillStyle=
+            "#4da94c";
+
+        a.beginPath();
+
+        a.ellipse(
+            35,
+            -125,
+            18,
+            34,
+            .6,
+            0,
+            Math.PI*2
+        );
+
+        a.fill();
+
+    }
+
+
+    a.restore();
+
+}
+
+
+/* =========================================================
+   AVATAR BUTTON EVENTS
+========================================================= */
+
+document.querySelectorAll(
+    ".colorButton"
+).forEach(button=>{
+
+    button.onclick=()=>{
+
+        avatar.fur=
+            button.dataset.color;
+
+        document.querySelectorAll(
+            ".colorButton"
+        ).forEach(
+            b=>
+                b.classList.remove(
+                    "selected"
+                )
+        );
+
+        button.classList.add(
+            "selected"
+        );
+
+        drawAvatarPreview();
+
+    };
+
+});
+
+
+document.querySelectorAll(
+    "[data-eye]"
+).forEach(button=>{
+
+    button.onclick=()=>{
+
+        avatar.eye=
+            button.dataset.eye;
+
+        selectOption(
+            "[data-eye]",
+            button
+        );
+
+        drawAvatarPreview();
+
+    };
+
+});
+
+
+document.querySelectorAll(
+    "[data-ears]"
+).forEach(button=>{
+
+    button.onclick=()=>{
+
+        avatar.ears=
+            button.dataset.ears;
+
+        selectOption(
+            "[data-ears]",
+            button
+        );
+
+        drawAvatarPreview();
+
+    };
+
+});
+
+
+document.querySelectorAll(
+    "[data-accessory]"
+).forEach(button=>{
+
+    button.onclick=()=>{
+
+        avatar.accessory=
+            button.dataset.accessory;
+
+        selectOption(
+            "[data-accessory]",
+            button
+        );
+
+        drawAvatarPreview();
+
+    };
+
+});
+
+
+document.querySelectorAll(
+    "[data-tail]"
+).forEach(button=>{
+
+    button.onclick=()=>{
+
+        avatar.tail=
+            button.dataset.tail;
+
+        selectOption(
+            "[data-tail]",
+            button
+        );
+
+        drawAvatarPreview();
+
+    };
+
+});
+
+
+function selectOption(
+    selector,
+    selected
+){
+
+    document.querySelectorAll(
+        selector
+    ).forEach(button=>{
+
+        button.classList.remove(
+            "selected"
+        );
+
+    });
+
+    selected.classList.add(
+        "selected"
+    );
+
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+document.getElementById(
+    "previousSong"
+).onclick=
+    previousSong;
+
+
+document.getElementById(
+    "nextSong"
+).onclick=
+    nextSong;
+
+
+document.getElementById(
+    "musicButton"
+).onclick=
+    toggleMute;
+
+
+document.getElementById(
+    "songsButton"
+).onclick=
+    openSongMenu;
+
+
+document.getElementById(
+    "closeSongMenu"
+).onclick=
+    closeSongMenu;
+
+
+document.getElementById(
+    "closeSeedShop"
+).onclick=
+    closeSeedShop;
+
+
+document.getElementById(
+    "closeSellShop"
+).onclick=
+    closeSellShop;
+
+
+document.getElementById(
+    "avatarButton"
+).onclick=
+    openAvatar;
+
+
+document.getElementById(
+    "closeAvatar"
+).onclick=
+    closeAvatar;
+
+
+document.getElementById(
+    "seedSearch"
+).oninput=
+    renderSeedShop;
+
+
+document.getElementById(
+    "rarityFilter"
+).onchange=
+    renderSeedShop;
+
+
+document.getElementById(
+    "sortFilter"
+).onchange=
+    renderSeedShop;
+
+
+/* =========================================================
+   START MUSIC AFTER FIRST KEY
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function(){
+
+        if(!musicStarted){
+
+            startAudio();
+
+            playCurrentSong();
+
+        }
+
+    },
+    {
+        once:true
+    }
+);
+
+
+/* =========================================================
+   PAUSE MENU
+========================================================= */
+
+function pauseGame(){
+
+    if(gamePaused) return;
+
+    gamePaused=true;
+
+    document.getElementById("pauseOverlay").classList.add("open");
+
+    document.getElementById("pauseButton").textContent="▶ Paused";
+
+    if(audioContext && !muted){
+        audioContext.suspend();
+    }
+}
+
+function resumeGame(){
+
+    if(!gamePaused) return;
+
+    gamePaused=false;
+
+    document.getElementById("pauseOverlay").classList.remove("open");
+
+    document.getElementById("pauseButton").textContent="⏸ Pause";
+
+    if(audioContext && !muted){
+        audioContext.resume();
+    }
+
+    lastPlantTime=performance.now();
+}
+
+function goToIndex(){
+    window.location.href="index.html";
+}
+
+document.getElementById("pauseButton").onclick=
+    pauseGame;
+
+document.getElementById("resumeButton").onclick=
+    resumeGame;
+
+document.getElementById("goIndexButton").onclick=
+    goToIndex;
+
+document.addEventListener("keydown",e=>{
+
+    if(
+        e.key.toLowerCase()==="p" &&
+        !e.repeat
+    ){
+
+        if(gamePaused)
+            resumeGame();
+        else
+            pauseGame();
+
+    }
+
+    if(
+        e.key==="Escape" &&
+        !e.repeat
+    ){
+
+        if(gamePaused)
+            resumeGame();
+        else
+            pauseGame();
+    }
+
+});
+
+
+/* =========================================================
+   GAME LOOP
+========================================================= */
+
+function gameLoop(){
+
+    updatePlayer();
+
+    updatePlants();
+
+    drawWorld();
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+}
+
+
+/* =========================================================
+   START GAME
+========================================================= */
+
+updateUI();
+
+updateHolding();
+
+gameLoop();
+
+</script>
+
+</body>
+</html>
