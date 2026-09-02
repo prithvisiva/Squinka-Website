@@ -1,160 +1,299 @@
 <!DOCTYPE html>
+
 <html>
 <head>
     <title>Squinka Game</title>
 
-    <style>
-        body {
-            margin: 0;
-            background-color: lightblue;
-            font-family: Arial;
-            text-align: center;
-        }
 
-        #game {
-            width: 600px;
-            height: 400px;
-            background-color: white;
-            border: 5px solid black;
-            margin: 20px auto;
-            position: relative;
-            overflow: hidden;
-        }
+<style>
+    body {
+        margin: 0;
+        background-color: lightblue;
+        font-family: Arial;
+        text-align: center;
+    }
 
-        /* BIGGER SQUINKA */
-        #squinka {
-            position: absolute;
-            width: 70px;
-            height: 70px;
-            left: 50px;
-            top: 50px;
-            font-size: 65px;
-            line-height: 70px;
-        }
+    #game {
+        width: 600px;
+        height: 400px;
+        max-width: 90vw;
+        background-color: white;
+        border: 5px solid black;
+        margin: 20px auto;
+        position: relative;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
 
-        /* FISH */
-        #fish {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            left: 400px;
-            top: 250px;
-            font-size: 35px;
-            line-height: 40px;
-        }
+    #squinka {
+        position: absolute;
+        width: 70px;
+        height: 70px;
+        left: 50px;
+        top: 50px;
+        font-size: 65px;
+        line-height: 70px;
+    }
 
-        #score {
-            font-size: 24px;
-            font-weight: bold;
-        }
-    </style>
+    #fish {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        left: 400px;
+        top: 250px;
+        font-size: 35px;
+        line-height: 40px;
+    }
+
+    #score {
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    /* ARROW CONTROLS */
+    #controls {
+        width: 210px;
+        margin: 20px auto;
+        display: grid;
+        grid-template-columns: 65px 65px 65px;
+        grid-template-rows: 65px 65px;
+        gap: 5px;
+        justify-content: center;
+    }
+
+    .control-button {
+        width: 65px;
+        height: 65px;
+        font-size: 32px;
+        font-weight: bold;
+        background-color: blue;
+        color: white;
+        border: 3px solid black;
+        border-radius: 12px;
+        cursor: pointer;
+        touch-action: none;
+        user-select: none;
+    }
+
+    .control-button:active {
+        background-color: darkblue;
+        transform: scale(0.95);
+    }
+
+    #up {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    #left {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    #down {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    #right {
+        grid-column: 3;
+        grid-row: 2;
+    }
+
+    #backButton {
+        background-color: blue;
+        color: white;
+        padding: 10px 18px;
+        font-size: 16px;
+        border: 2px solid black;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+</style>
+```
+
 </head>
 
 <body>
 
-    <h1>🐱 Squinka's Fish Game 🐟</h1>
+```
+<h1>🐱 Squinka's Fish Game 🐟</h1>
 
-    <div id="score">Score: 0</div>
+<div id="score">Score: 0</div>
 
-    <div id="game">
-        <div id="squinka">🐱</div>
-        <div id="fish">🐟</div>
-    </div>
+<div id="game">
+    <div id="squinka">🐱</div>
+    <div id="fish">🐟</div>
+</div>
 
-    <script>
-        let squinka = document.getElementById("squinka");
-        let fish = document.getElementById("fish");
-        let scoreText = document.getElementById("score");
+<!-- ARROW KEYS -->
+<div id="controls">
 
-        let x = 50;
-        let y = 50;
-        let score = 0;
+    <button class="control-button" id="up">⬆️</button>
 
-        let fishX = 400;
-        let fishY = 250;
+    <button class="control-button" id="left">⬅️</button>
 
-        let keys = {};
+    <button class="control-button" id="down">⬇️</button>
 
-        document.addEventListener("keydown", function(event) {
-            keys[event.key] = true;
-        });
+    <button class="control-button" id="right">➡️</button>
 
-        document.addEventListener("keyup", function(event) {
-            keys[event.key] = false;
-        });
+</div>
+
+<button id="backButton" onclick="window.location.href='index.html';">
+    Back to Main Page
+</button>
 
 
-        function checkFish() {
 
-            // Squinka's center
-            let squinkaCenterX = x + 35;
-            let squinkaCenterY = y + 35;
 
-            // Fish's center
-            let fishCenterX = fishX + 20;
-            let fishCenterY = fishY + 20;
+<script>
 
-            let distanceX = Math.abs(squinkaCenterX - fishCenterX);
-            let distanceY = Math.abs(squinkaCenterY - fishCenterY);
+    let squinka = document.getElementById("squinka");
+    let fish = document.getElementById("fish");
+    let scoreText = document.getElementById("score");
 
-            // Small hitbox
-            if (distanceX < 30 && distanceY < 30) {
+    let x = 50;
+    let y = 50;
+    let score = 0;
 
-                score = score + 1;
-                scoreText.textContent = "Score: " + score;
+    let fishX = 400;
+    let fishY = 250;
 
-                fishX = Math.floor(Math.random() * 550);
-                fishY = Math.floor(Math.random() * 350);
+    let keys = {};
 
-                fish.style.left = fishX + "px";
-                fish.style.top = fishY + "px";
-            }
+
+    /* COMPUTER ARROW KEYS */
+
+    document.addEventListener("keydown", function(event) {
+
+        if (
+            event.key === "ArrowRight" ||
+            event.key === "ArrowLeft" ||
+            event.key === "ArrowUp" ||
+            event.key === "ArrowDown"
+        ) {
+            event.preventDefault();
         }
 
+        keys[event.key] = true;
+    });
 
-        function moveSquinka() {
+    document.addEventListener("keyup", function(event) {
+        keys[event.key] = false;
+    });
 
-            let speed = 4;
 
-            if (keys["ArrowRight"]) {
-                x += speed;
-            }
+    /* ON-SCREEN BUTTONS */
 
-            if (keys["ArrowLeft"]) {
-                x -= speed;
-            }
+    function setupButton(buttonID, keyName) {
 
-            if (keys["ArrowUp"]) {
-                y -= speed;
-            }
+        let button = document.getElementById(buttonID);
 
-            if (keys["ArrowDown"]) {
-                y += speed;
-            }
+        button.addEventListener("mousedown", function(event) {
+            event.preventDefault();
+            keys[keyName] = true;
+        });
 
-            // Keep Squinka inside the game
-            if (x < 0) x = 0;
-            if (x > 530) x = 530;
+        button.addEventListener("mouseup", function(event) {
+            event.preventDefault();
+            keys[keyName] = false;
+        });
 
-            if (y < 0) y = 0;
-            if (y > 330) y = 330;
+        button.addEventListener("mouseleave", function() {
+            keys[keyName] = false;
+        });
 
-            squinka.style.left = x + "px";
-            squinka.style.top = y + "px";
+        button.addEventListener("touchstart", function(event) {
+            event.preventDefault();
+            keys[keyName] = true;
+        });
 
-            checkFish();
+        button.addEventListener("touchend", function(event) {
+            event.preventDefault();
+            keys[keyName] = false;
+        });
 
-            requestAnimationFrame(moveSquinka);
+        button.addEventListener("touchcancel", function(event) {
+            event.preventDefault();
+            keys[keyName] = false;
+        });
+    }
+
+
+    setupButton("up", "ArrowUp");
+    setupButton("down", "ArrowDown");
+    setupButton("left", "ArrowLeft");
+    setupButton("right", "ArrowRight");
+
+
+    /* CHECK FISH */
+
+    function checkFish() {
+
+        let squinkaCenterX = x + 35;
+        let squinkaCenterY = y + 35;
+
+        let fishCenterX = fishX + 20;
+        let fishCenterY = fishY + 20;
+
+        let distanceX = Math.abs(squinkaCenterX - fishCenterX);
+        let distanceY = Math.abs(squinkaCenterY - fishCenterY);
+
+        if (distanceX < 30 && distanceY < 30) {
+
+            score++;
+
+            scoreText.textContent = "Score: " + score;
+
+            fishX = Math.floor(Math.random() * 550);
+            fishY = Math.floor(Math.random() * 350);
+
+            fish.style.left = fishX + "px";
+            fish.style.top = fishY + "px";
+        }
+    }
+
+
+    /* MOVE SQUINKA */
+
+    function moveSquinka() {
+
+        let speed = 4;
+
+        if (keys["ArrowRight"]) {
+            x += speed;
         }
 
-        moveSquinka();
-    </script>
+        if (keys["ArrowLeft"]) {
+            x -= speed;
+        }
+
+        if (keys["ArrowUp"]) {
+            y -= speed;
+        }
+
+        if (keys["ArrowDown"]) {
+            y += speed;
+        }
+
+        if (x < 0) x = 0;
+        if (x > 530) x = 530;
+
+        if (y < 0) y = 0;
+        if (y > 330) y = 330;
+
+        squinka.style.left = x + "px";
+        squinka.style.top = y + "px";
+
+        checkFish();
+
+        requestAnimationFrame(moveSquinka);
+    }
+
+    moveSquinka();
+
+</script>
 
 </body>
 </html>
 
-<button style="background-color: blue; color: white;" onclick="window.location.href='index.html';">
-    Back to Main Page
-</button>
-<h3><b>DISCLAIMER:</b></h3>
-<h4>You can not use this game on mobile because you need arrow keys to move.</h4>
