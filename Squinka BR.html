@@ -63,32 +63,28 @@ h1{margin:0 0 6px;font-size:clamp(28px,5vw,48px);color:var(--gold)}h2{margin:5px
     <div class="menuGrid">
       <div class="menuCard"><b>🌲 Huge world</b><p class="muted">Forests, rocks, buildings, roads, rare abandoned cars, loot, and hidden places.</p></div>
       <div class="menuCard"><b>🤖 150 armed bots</b><p class="muted">They loot, fight, heal, use cover, hear gunshots, search, and some use their own Spirit upgrades.</p></div>
-      <div class="menuCard"><b>✨ 100 Spirits</b><p class="muted">Your Spirit Book saves your collection between matches. If eliminated, you lose Spirits collected during that match and the Spirit you have equipped; your other saved Spirits stay safe.</p></div>
+      <div class="menuCard"><b>✨ 100 Spirits</b><p class="muted">No Spirit shop and no buying. Defeat a Spirit-carrying bot or a boss, spend 1 Spirit Shard nearby, then press E to extract its Spirit. If you are eliminated or quit/reload during a match, you lose Spirits found that match and your equipped Spirit.</p></div>
       <div class="menuCard"><b>👑 Bosses</b><p class="muted">Bosses have more health and can reward rare shards or Spirits.</p></div>
     </div>
     <div class="row">
       <button id="startBtn">▶ Start Match</button>
       <button id="openBookMenu">📖 Spirit Book</button>
-      <button id="exportSaveMenuBtn">💾 Save Spirit Data</button>
-      <button id="importSaveMenuBtn">📂 Load Spirit Data</button>
-      <input id="importSaveFile" type="file" accept="application/json,.json" hidden>
       <button id="resetSaveBtn">Reset collection save</button>
       <button id="websiteMenuBtn">Go back to the squinka website</button>
     </div>
+    <p id="startupNotice" class="muted">Spirit data auto-saves in this browser. Importing old save files is disabled so losses cannot be undone with a backup. Refreshing or closing during a match counts as quitting.</p>
     <p class="muted">Tip: this is a self-contained browser game prototype. Graphics are drawn in code, so no extra downloads or libraries are needed.</p>
   </div>
   <div class="window hidden" id="bookMenu">
     <div class="row" style="justify-content:space-between"><h1>📖 Spirit Book</h1><button id="closeBook">✕ Close</button></div>
-    <p>You can hold at most 3 Spirit Shards. Defeated bots may drop their Spirit; spend 1 shard nearby and press E to extract it. Collect and equip Spirits during a match. If eliminated, Spirits collected in that match and your equipped Spirit are lost. Other Spirits in your collection stay saved.</p>
+    <p>You can hold at most 3 Spirit Shards. Spirits cannot be bought or claimed from this book. Defeat a bot carrying a Spirit or defeat a boss, then spend 1 shard nearby and press E to extract the dropped Spirit. If eliminated, or if you quit/reload mid-match, Spirits found that match and your equipped Spirit are lost. Other saved Spirits stay in your Book.</p>
     <div class="row">
       <div class="panel">Shards: <b id="bookShards">0</b></div>
       <div class="panel">Collected: <b id="bookCount">0 / 100</b></div>
       <div class="panel">Equipped: <b id="equippedName">None</b></div>
     </div>
     <div class="row" style="margin:12px 0">
-      <button id="exportSaveBookBtn">💾 Download Save Backup</button>
-      <button id="importSaveBookBtn">📂 Import Save Backup</button>
-      <span class="muted">Your collection auto-saves in this browser. Download a backup to keep a copy.</span>
+      <span class="muted">Your collection auto-saves in this browser. Save-file importing is disabled to prevent restoring Spirits lost in a match.</span>
     </div>
     <p class="muted">Some entries stay mysterious until discovered. Boss-only Spirits have a crown marker.</p>
     <div id="spiritGrid"></div>
@@ -158,48 +154,55 @@ const spirits=spiritNames.map((name,i)=>{
  const e=spiritEffect(i);
  return {id:i,name,rarity:rarities[Math.min(6,Math.floor(i/15))],color:rarityColors[Math.min(6,Math.floor(i/15))],icon:spiritIcons[i%spiritIcons.length],bossOnly:[17,27,37,47,57,67,77,87,97,99].includes(i),effect:e,ability:`Unique spirit mix: +${e.damage}% damage, ${e.fire}% faster firing, ${e.resistance}% damage resistance, +${e.healing}% healing, +${e.speed}% speed, +${e.range}% range, and +${e.loot}% loot chance.`};
 });
+let interruptedMatchRecovery=false;
+let matchSpiritIds=new Set();
+let matchActive=false;
 let saved=loadSave();
 function cleanSaveData(s){
  const unlocked=[...new Set((Array.isArray(s.unlocked)?s.unlocked:[]).filter(id=>Number.isInteger(id)&&id>=0&&id<spirits.length))];
  const equipped=Number.isInteger(s.equipped)&&unlocked.includes(s.equipped)?s.equipped:-1;
  return {unlocked,equipped,shards:Math.min(MAX_SHARDS,Math.max(0,Number.isFinite(Number(s.shards))?Math.floor(Number(s.shards)):0)),bestKills:Math.max(0,Number.isFinite(Number(s.bestKills))?Math.floor(Number(s.bestKills)):0)};
 }
-function loadSave(){try{return cleanSaveData(JSON.parse(localStorage.getItem(saveKey)||"{}"));}catch{return {unlocked:[],equipped:-1,shards:0,bestKills:0}}}
-function persist(){try{localStorage.setItem(saveKey,JSON.stringify(saved));return true}catch{return false}}
-function exportSave(){
- const backup={game:"Squinka Royale",version:1,exportedAt:new Date().toISOString(),saved:cleanSaveData(saved)};
- const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
- const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="squinka-royale-spirit-save.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
- toast("Spirit save backup downloaded!");
+function loadSave(){
+ let raw={};try{raw=JSON.parse(localStorage.getItem(saveKey)||"{}")||{};}catch{raw={};}
+ const state=cleanSaveData(raw);
+ // A live match that disappears on refresh/close counts as a forfeit. Persist the loss immediately.
+ if(raw.activeMatch===true){
+  interruptedMatchRecovery=true;
+  const lost=new Set((Array.isArray(raw.matchSpiritIds)?raw.matchSpiritIds:[]).filter(id=>Number.isInteger(id)&&id>=0&&id<spirits.length));
+  if(state.equipped>=0)lost.add(state.equipped);
+  state.unlocked=state.unlocked.filter(id=>!lost.has(id));
+  state.equipped=-1;
+  try{localStorage.setItem(saveKey,JSON.stringify({...state,activeMatch:false,matchSpiritIds:[]}));}catch{}
+ }
+ return state;
 }
-function requestSaveImport(){
- if(gameState==="playing"||gameState==="paused"){toast("Go to the main menu before importing a save.");return}
- const input=document.getElementById("importSaveFile");input.value="";input.click();
-}
-document.getElementById("importSaveFile").addEventListener("change",async e=>{
- const file=e.target.files&&e.target.files[0];if(!file)return;
- try{
-  const data=JSON.parse(await file.text());
-  const candidate=data&&data.saved&&typeof data.saved==="object"?data.saved:data;
-  if(!candidate||!Array.isArray(candidate.unlocked))throw new Error("That file does not contain a Squinka Royale Spirit collection.");
-  if(!confirm("Load this save and replace the collection currently in this browser? Download a backup first if you want to keep both."))return;
-  saved=cleanSaveData(candidate);matchSpiritIds=new Set();persist();renderBook();toast("Spirit data loaded successfully!");
- }catch(err){alert("Could not load that save file. Choose a Squinka Royale save backup JSON file.");}
-});
+function persist(){try{localStorage.setItem(saveKey,JSON.stringify({...saved,activeMatch:!!matchActive,matchSpiritIds:[...matchSpiritIds]}));return true}catch{return false}}
 window.addEventListener("beforeunload",()=>{persist()});
 const keys={},mouse={x:W/2,y:H/2,down:false};addEventListener("keydown",e=>{keys[e.key.toLowerCase()]=true;if([" ","arrowup","arrowdown","arrowleft","arrowright"].includes(e.key.toLowerCase()))e.preventDefault();if(e.key.toLowerCase()==="escape")togglePause();if(e.key.toLowerCase()==="r")reload(player);if(e.key.toLowerCase()==="e")pickup();if(e.key.toLowerCase()==="h")heal(player);if(e.key.toLowerCase()==="c")useCompass();if(e.key>="1"&&e.key<="3")switchWeapon(+e.key-1);});
 addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 canvas.addEventListener("mousemove",e=>{mouse.x=e.clientX;mouse.y=e.clientY});canvas.addEventListener("mousedown",e=>{if(e.button===0)mouse.down=true});addEventListener("mouseup",e=>{if(e.button===0)mouse.down=false});canvas.addEventListener("contextmenu",e=>e.preventDefault());
 
-let player,bots=[],objects=[],bullets=[],particles=[],loot=[],bosses=[],zone,gameState="menu",lastTime=0,elapsed=0,kills=0,toastTimer=0,toastText="",camera={x:0,y:0},nextBoss=55,worldSeed=0,compassNextUse=120,compassReveal=0,matchSpiritIds=new Set();
+let player,bots=[],objects=[],bullets=[],particles=[],loot=[],bosses=[],zone,gameState="menu",lastTime=0,elapsed=0,kills=0,toastTimer=0,toastText="",camera={x:0,y:0},nextBoss=55,worldSeed=0,compassNextUse=120,compassReveal=0;
 const overlay=document.getElementById("overlay"),mainMenu=document.getElementById("mainMenu"),bookMenu=document.getElementById("bookMenu"),pauseMenu=document.getElementById("pauseMenu"),endMenu=document.getElementById("endMenu");
 function showOnly(panel){for(const p of [mainMenu,bookMenu,pauseMenu,endMenu])p.classList.toggle("hidden",p!==panel);overlay.style.display=panel?"flex":"none"}
 function toast(t){toastText=t;toastTimer=2.5;document.getElementById("toast").textContent=t}
 function equippedSpirit(){return saved.equipped>=0?spirits[saved.equipped]:null}
+function loseMatchSpirits(){
+ const lostIds=new Set(matchSpiritIds);
+ if(saved.equipped>=0)lostIds.add(saved.equipped);
+ const lostList=saved.unlocked.filter(id=>lostIds.has(id));
+ saved.unlocked=saved.unlocked.filter(id=>!lostIds.has(id));
+ saved.equipped=-1;
+ matchSpiritIds=new Set();
+ matchActive=false;
+ persist();renderBook();
+ return lostList;
+}
 function addShards(amount=1){const before=saved.shards;saved.shards=Math.min(MAX_SHARDS,saved.shards+amount);persist();renderBook();return saved.shards-before;}
 function newActor(x,y,isPlayer=false,boss=false){return {x,y,r:boss?25:13,hp:boss?650:100,maxHp:boss?650:100,shield:0,angle:0,isPlayer,boss,alive:true,speed:boss?90:rand(95,125),weapon:isPlayer?0:Math.floor(rand(0,10)),ammo:0,reserve:0,reload:0,fireCD:rand(0,.7),meds:boss?0:Math.random()<.35?1:0,ai:"loot",target:null,lastSeen:null,lastHeard:null,alert:0,think:0,strafe:Math.random()<.5?-1:1,seed:Math.random()*10,spirit:Math.random()<.12?pick(spirits.filter(sp=>!sp.bossOnly)).id:-1,walk:Math.random()*10,name:isPlayer?"You":"Squinka",lootValue:0};}
 function startMatch(){
- matchSpiritIds=new Set();
+ matchSpiritIds=new Set();matchActive=true;
  compassNextUse=120;compassReveal=0;updateCompassButton();
  worldSeed=Math.random()*999999;elapsed=0;kills=0;nextBoss=55;bots=[];objects=[];bullets=[];particles=[];loot=[];bosses=[];
  player=newActor(WORLD.w/2,WORLD.h/2,true);player.hp=100;player.weapon=0;player.ammo=gunDefs[0].mag;player.reserve=60;player.meds=1;player.inventory=[0,-1,-1];player.shield=0;
@@ -213,7 +216,7 @@ function startMatch(){
  for(let i=0;i<150;i++){let x,y,tries=0;do{x=rand(70,WORLD.w-70);y=rand(70,WORLD.h-70);tries++}while(Math.hypot(x-player.x,y-player.y)<400&&tries<30);let b=newActor(x,y);b.name=pick(["Mittens","Mochi","Paws","Noodle","Pebble","Tango","Clover","Biscuit","Miso","Waffles","Pixel","Pickles"]);b.weapon=Math.floor(rand(0,10));b.ammo=gunDefs[b.weapon].mag;b.reserve=gunDefs[b.weapon].mag*2;b.ai="loot";bots.push(b);}
  // Bosses are rare and roam the map.
  for(let i=0;i<3;i++){let b=newActor(rand(350,WORLD.w-350),rand(350,WORLD.h-350),false,true);b.name=["Shard Guardian","Rift Beast","Elder Squinka"][i];b.weapon=9;b.ammo=999;b.speed=75;b.hp=b.maxHp=650+i*150;b.bossIndex=i;bosses.push(b);}
- gameState="playing";showOnly(null);lastTime=performance.now();toast("Find loot. Stay alert. The Spirits are rare!");
+ gameState="playing";persist();showOnly(null);lastTime=performance.now();toast("Find loot. Stay alert. The Spirits are rare!");
 }
 function updateCompassButton(){
  const btn=document.getElementById("compassBtn");
@@ -235,7 +238,7 @@ function useCompass(){
  compassReveal=5;compassNextUse=elapsed+20;updateCompassButton();toast("🧭 COMPASS ACTIVE! All entities revealed for 5 seconds. Ready again in 20 seconds!");
 }
 document.getElementById("compassBtn").addEventListener("click",useCompass);
-function makeLoot(x,y){let r=Math.random();let sid=player&&equippedSpirit()?equippedSpirit().id:-1;let perk=spiritEffect(sid);if(perk)r=Math.min(.999,r+perk.loot/100);let type=r<.39?"ammo":r<.55?"medkit":r<.86?"gun":r<.96?"shard":"spirit";return {x,y,type,gun:Math.floor(rand(0,10)),amount:type==="ammo"?Math.floor(rand(15,55)):1,spin:Math.random()*TAU};}
+function makeLoot(x,y){let r=Math.random();let sid=player&&equippedSpirit()?equippedSpirit().id:-1;let perk=spiritEffect(sid);if(perk)r=Math.min(.999,r+perk.loot/100);let type=r<.39?"ammo":r<.55?"medkit":r<.86?"gun":r<.96?"shard":"ammo";return {x,y,type,gun:Math.floor(rand(0,10)),amount:type==="ammo"?Math.floor(rand(15,55)):1,spin:Math.random()*TAU};}
 function switchWeapon(slot){if(!player||!player.inventory||slot>=player.inventory.length)return;let id=player.inventory[slot];if(id>=0){player.weapon=id;player.ammo=player.ammoByGun?.[id]??gunDefs[id].mag;player.reserve=player.reserveByGun?.[id]??gunDefs[id].mag*2;toast(gunDefs[id].name)}}
 function storeGun(a,id){a.ammoByGun=a.ammoByGun||{};a.reserveByGun=a.reserveByGun||{};if(a.ammoByGun[id]===undefined){a.ammoByGun[id]=gunDefs[id].mag;a.reserveByGun[id]=gunDefs[id].mag*2;}a.weapon=id;a.ammo=a.ammoByGun[id];a.reserve=a.reserveByGun[id];}
 function syncAmmo(a){a.ammoByGun=a.ammoByGun||{};a.reserveByGun=a.reserveByGun||{};a.ammoByGun[a.weapon]=a.ammo;a.reserveByGun[a.weapon]=a.reserve;}
@@ -248,15 +251,15 @@ function pickup(){
  else if(near.type==="medkit"){player.meds++;toast("Picked up a med kit")}
  else if(near.type==="gun"){let slot=player.inventory.findIndex(id=>id<0);if(slot<0)slot=player.inventory.findIndex(id=>id!==player.weapon);if(slot<0)slot=1;player.inventory[slot]=near.gun;player.ammoByGun=player.ammoByGun||{};player.reserveByGun=player.reserveByGun||{};player.ammoByGun[near.gun]=gunDefs[near.gun].mag;player.reserveByGun[near.gun]=gunDefs[near.gun].mag*2;toast("Found "+gunDefs[near.gun].name+" · press "+(slot+1))}
  else if(near.type==="shard"){if(saved.shards>=MAX_SHARDS){toast("Shard pouch full! Maximum is 3 Spirit Shards.");loot.splice(loot.indexOf(near),1);return;}addShards(1);toast("✨ Spirit Shard found! "+saved.shards+" / "+MAX_SHARDS)}
- else if(near.type==="botSpirit"){if(saved.shards>=1){saved.shards--;persist();const sid=near.spiritId;if(sid>=0&&!saved.unlocked.includes(sid)){saved.unlocked.push(sid);matchSpiritIds.add(sid);if(saved.equipped<0)saved.equipped=sid;persist();renderBook();toast("✨ Extracted "+spirits[sid].name+" from the defeated bot!");}else{addShards(1);toast("That Spirit was already collected; shard refunded.");}}else{toast("You need 1 Spirit Shard to extract this bot's Spirit!");return;}}
- else if(near.type==="spirit"){toast("A mysterious Spirit trace… You need a shard and must discover its secret!");}
+ else if(near.type==="botSpirit"){
+  const sid=near.spiritId;
+  if(saved.unlocked.includes(sid)){toast("You already own that Spirit. No shard spent.");}
+  else if(saved.shards>=1&&sid>=0&&sid<spirits.length){
+   saved.shards--;saved.unlocked.push(sid);matchSpiritIds.add(sid);if(saved.equipped<0)saved.equipped=sid;
+   persist();renderBook();toast("✨ Extracted "+spirits[sid].name+"! You spent 1 Spirit Shard.");
+  }else{toast(saved.shards<1?"You need 1 Spirit Shard to extract this Spirit!":"That Spirit cannot be extracted.");return;}
+ }
  loot.splice(loot.indexOf(near),1);
-}
-function unlockSpirit(id,fromBoss=false){
- if(saved.unlocked.includes(id)){if(saved.shards<MAX_SHARDS)addShards(1);toast(saved.shards>=MAX_SHARDS?"Shard pouch full! Maximum is 3.":"Duplicate Spirit converted to a shard!");return}
- if(spirits[id].bossOnly&&!fromBoss){toast("This Spirit can only be claimed from a boss!");return}
- if(saved.shards<1){toast("You need a Spirit Shard to claim a Spirit!");return}
- saved.shards--;saved.unlocked.push(id);matchSpiritIds.add(id);if(saved.equipped<0)saved.equipped=id;persist();renderBook();toast("✨ Spirit discovered: "+spirits[id].name+"!");
 }
 function renderBook(){
  document.getElementById("bookShards").textContent=saved.shards;document.getElementById("bookCount").textContent=saved.unlocked.length+" / 100";
@@ -265,18 +268,14 @@ function renderBook(){
  spirits.forEach(s=>{const got=saved.unlocked.includes(s.id),card=document.createElement("div");card.className="spiritCard";card.style.borderColor=got?s.color:"#47627c";
  const title=got?s.name:(s.bossOnly?"👑 Unknown Boss Spirit":"??? Locked Spirit");
  card.innerHTML=`<div class="spiritIcon">${got?s.icon:"🔒"}</div><b style="color:${got?s.color:"#b3c2d0"}">${title}</b><div class="muted">${got?s.rarity:(s.bossOnly?"Boss discovery":"Undiscovered")}</div><p class="muted">${got?s.ability:"Discover this Spirit to reveal its ability and story."}</p>`;
- const btn=document.createElement("button");btn.className="smallBtn";btn.textContent=got?(saved.equipped===s.id?"✓ Equipped":"Equip"):(s.bossOnly?"Boss only":"Claim · 1 shard");const canChangeSpirits=gameState==="playing"||gameState==="paused";btn.disabled=canChangeSpirits?(got?false:(saved.shards<1||s.bossOnly)):true;btn.onclick=()=>{if(!canChangeSpirits){toast("You can only collect or equip Spirits during a match.");return}if(got){saved.equipped=s.id;persist();renderBook();toast(s.name+" equipped!")}else unlockSpirit(s.id,false)};card.appendChild(btn);grid.appendChild(card);});
+ const btn=document.createElement("button");btn.className="smallBtn";const canChangeSpirits=gameState==="playing"||gameState==="paused";btn.textContent=got?(saved.equipped===s.id?"✓ Equipped":"Equip"):(s.bossOnly?"👑 Boss drop only":"🔒 Find and extract");btn.disabled=!got||!canChangeSpirits||saved.equipped===s.id;btn.onclick=()=>{if(!canChangeSpirits){toast("You can equip collected Spirits during a match.");return}if(got){saved.equipped=s.id;persist();renderBook();toast(s.name+" equipped!")}};card.appendChild(btn);grid.appendChild(card);});
 }
 function openBook(){renderBook();showOnly(bookMenu)}
 document.getElementById("bookBtn").onclick=openBook;document.getElementById("openBookMenu").onclick=openBook;document.getElementById("pauseBookBtn").onclick=openBook;document.getElementById("endBookBtn").onclick=openBook;document.getElementById("closeBook").onclick=()=>{if(gameState==="playing")showOnly(null);else if(gameState==="paused")showOnly(pauseMenu);else showOnly(mainMenu)};
 document.getElementById("startBtn").onclick=startMatch;
-document.getElementById("exportSaveMenuBtn").onclick=exportSave;
-document.getElementById("exportSaveBookBtn").onclick=exportSave;
-document.getElementById("importSaveMenuBtn").onclick=requestSaveImport;
-document.getElementById("importSaveBookBtn").onclick=requestSaveImport;
 document.getElementById("resetSaveBtn").onclick=()=>{if(confirm("Reset all unlocked Spirits, shards, and collection progress?")){saved={unlocked:[],equipped:-1,shards:0,bestKills:0};persist();renderBook();toast("Collection reset")}};
 document.getElementById("pauseBtn").onclick=togglePause;document.getElementById("resumeBtn").onclick=()=>{gameState="playing";showOnly(null);lastTime=performance.now()};
-document.getElementById("backMenuBtn").onclick=()=>{gameState="menu";showOnly(mainMenu)};document.getElementById("againBtn").onclick=startMatch;document.getElementById("endMainBtn").onclick=()=>{gameState="menu";showOnly(mainMenu)};document.getElementById("websiteBtn").onclick=()=>{window.location.href="index.html"};document.getElementById("websiteMenuBtn").onclick=()=>{window.location.href="index.html"};
+document.getElementById("backMenuBtn").onclick=()=>{if(confirm("Return to the main menu? This counts as forfeiting: you will lose your equipped Spirit and any Spirits found during this match.")){const lost=loseMatchSpirits();gameState="menu";document.getElementById("startupNotice").textContent=lost.length?"Match forfeited. Lost Spirits: "+lost.map(id=>spirits[id].name).join(", ")+". Your other saved Spirits remain." :"Match forfeited. Your equipped Spirit was lost if you had one. Your other saved Spirits remain.";document.getElementById("startupNotice").classList.remove("hidden");showOnly(mainMenu)}};document.getElementById("againBtn").onclick=startMatch;document.getElementById("endMainBtn").onclick=()=>{gameState="menu";showOnly(mainMenu)};document.getElementById("websiteBtn").onclick=()=>{window.location.href="index.html"};document.getElementById("websiteMenuBtn").onclick=()=>{window.location.href="index.html"};
 function togglePause(){if(gameState==="playing"){gameState="paused";showOnly(pauseMenu)}else if(gameState==="paused"){gameState="playing";showOnly(null);lastTime=performance.now()}}
 function lineBlocked(x1,y1,x2,y2){
  const steps=Math.ceil(Math.hypot(x2-x1,y2-y1)/18);for(let i=1;i<steps;i++){let t=i/steps,x=x1+(x2-x1)*t,y=y1+(y2-y1)*t;for(const o of objects){if(o.type==="building"){if(x>o.x&&x<o.x+o.w&&y>o.y&&y<o.y+o.h)return true;}else if(o.type==="car"){if(x>o.x-o.w/2&&x<o.x+o.w/2&&y>o.y-o.h/2&&y<o.y+o.h/2)return true;}else if(Math.hypot(x-o.x,y-o.y)<o.r*.72)return true;}}return false;
@@ -294,7 +293,7 @@ function fire(a,angle){
  for(let i=0;i<count;i++){let ang=angle+rand(-g.spread,g.spread),speed=g.speed;bullets.push({x:a.x+Math.cos(ang)*(a.r+8),y:a.y+Math.sin(ang)*(a.r+8),vx:Math.cos(ang)*speed*60,vy:Math.sin(ang)*speed*60,damage:g.damage+bonus,range:g.range*(perk?1+perk.range/100:1),travel:0,owner:a,color:g.color,life:g.range*(perk?1+perk.range/100:1)/(speed*60)});}
  a.ammo--;syncAmmo(a);burst(a.x+Math.cos(angle)*(a.r+8),a.y+Math.sin(angle)*(a.r+8),g.color,3);
  // Gunshots are heard locally; bots investigate the approximate source, never the exact shooter automatically.
- const soundRadius=a.weapon===7?1000:a.weapon===8?1150:690;
+ const soundRadius=a.weapon===7?1450:a.weapon===8?1550:1050;
  for(const b of bots){if(b.alive&&Math.hypot(b.x-a.x,b.y-a.y)<soundRadius){b.lastHeard={x:a.x+rand(-100,100),y:a.y+rand(-100,100),time:elapsed};if(b.ai==="loot"||b.ai==="wander")b.ai="investigate";}}
  if(a.isPlayer)toastText="";
 }
@@ -303,21 +302,14 @@ function damage(a,amount,source){
  let sid=a.isPlayer?(equippedSpirit()?.id??-1):a.spirit;let perk=spiritEffect(sid);if(perk)reduction=perk.resistance/100;
  amount*=1-reduction;if(a.shield>0){let take=Math.min(a.shield,amount);a.shield-=take;amount-=take;}a.hp-=amount;burst(a.x,a.y,a.boss?"#ff755f":"#ffdc9b",3);
  if(a.hp<=0){a.hp=0;a.alive=false;burst(a.x,a.y,a.boss?"#ff704d":"#a7e9ff",20);
-  if(a.boss){let shardCount=2+Math.floor(Math.random()*2);for(let i=0;i<shardCount&&saved.shards<MAX_SHARDS;i++){loot.push({x:a.x+rand(-28,28),y:a.y+rand(-28,28),type:"shard",amount:1,spin:0});}let pool=spirits.filter(s=>s.bossOnly&&!saved.unlocked.includes(s.id));if(pool.length&&saved.shards>0){let sp=pick(pool);unlockSpirit(sp.id,true)}else toast(a.name+" defeated! Spirit Shards found!");}
-  else{loot.push(makeLoot(a.x+rand(-20,20),a.y+rand(-20,20)));if(Math.random()<.22)loot.push({x:a.x+rand(-20,20),y:a.y+rand(-20,20),type:"shard",amount:1,spin:0});if(a.spirit>=0&&!saved.unlocked.includes(a.spirit)){loot.push({x:a.x+rand(-22,22),y:a.y+rand(-22,22),type:"botSpirit",spiritId:a.spirit,amount:1,spin:0});}}
+  if(a.boss){let shardCount=2+Math.floor(Math.random()*2);for(let i=0;i<shardCount&&saved.shards<MAX_SHARDS;i++){loot.push({x:a.x+rand(-28,28),y:a.y+rand(-28,28),type:"shard",amount:1,spin:0});}const pool=spirits.filter(sp=>sp.bossOnly&&!saved.unlocked.includes(sp.id));if(pool.length){const sp=pick(pool);loot.push({x:a.x+rand(-32,32),y:a.y+rand(-32,32),type:"botSpirit",spiritId:sp.id,bossOnly:true,amount:1,spin:0});toast(a.name+" defeated! A rare Boss Spirit dropped — use 1 shard and press E to extract it.");}else toast(a.name+" defeated! Spirit Shards found!");}
+  else{loot.push(makeLoot(a.x+rand(-20,20),a.y+rand(-20,20)));if(Math.random()<.22)loot.push({x:a.x+rand(-20,20),y:a.y+rand(-20,20),type:"shard",amount:1,spin:0});if(a.spirit>=0&&!saved.unlocked.includes(a.spirit)){loot.push({x:a.x+rand(-22,22),y:a.y+rand(-22,22),type:"botSpirit",spiritId:a.spirit,bossOnly:!!a.spiritBossOnly,amount:1,spin:0});}}
   if(source===player){kills++;if(kills>saved.bestKills){saved.bestKills=kills;persist();}}
   if(a.isPlayer){
    // On death, lose Spirits acquired during this match plus the currently equipped Spirit.
    // Spirits saved from earlier matches remain in the Book unless one was equipped at death.
-   const lostIds=new Set(matchSpiritIds);
-   if(saved.equipped>=0)lostIds.add(saved.equipped);
-   const lostList=saved.unlocked.filter(id=>lostIds.has(id));
-   saved.unlocked=saved.unlocked.filter(id=>!lostIds.has(id));
-   saved.equipped=-1;
-   matchSpiritIds=new Set();
-   persist();
+   const lostList=loseMatchSpirits();
    gameState="ended";
-   renderBook();
    document.getElementById("endMessage").textContent=lostList.length>0
     ? `Eliminations: ${kills}. You lost ${lostList.length} Spirit${lostList.length===1?"":"s"}: ${lostList.map(id=>spirits[id].name).join(", ")}. This includes Spirits you collected in this match and the Spirit equipped when you died. Your other saved Spirits remain in your Spirit Book.`
     : `Eliminations: ${kills}. You had no Spirits from this match or equipped Spirit to lose. Your saved Spirit Book collection remains safe.`;
@@ -328,39 +320,40 @@ function damage(a,amount,source){
 }
 function actorTarget(a){
  if(a.isPlayer)return null;let best=null,bd=Infinity;
- // Sight checks are limited; bots must be close enough, have line of sight, and spend time recognizing a target.
- const candidates=[player,...bots,...bosses];for(const c of candidates){if(c===a||!c.alive||c===player&&!player.alive)continue;let d=dist(a,c);if(d>430||d>bd)continue;if(lineBlocked(a.x,a.y,c.x,c.y))continue;
-  if(c===player){let notice=clamp(1-d/520,.12,.9);if(a.lastSeen&&elapsed-a.lastSeen.time<2)notice=Math.max(notice,.6);if(Math.random()>notice*.10)continue;}
+ // Stronger sight: bots recognize the player from much farther away, but cover still blocks vision.
+ const candidates=[player,...bots,...bosses];for(const c of candidates){if(c===a||!c.alive||c===player&&!player.alive)continue;let d=dist(a,c);const sightRange=c===player?(a.boss?1120:900):(a.boss?820:650);if(d>sightRange||d>bd)continue;if(lineBlocked(a.x,a.y,c.x,c.y))continue;
+  if(c===player){const recentlySeen=a.lastSeen&&elapsed-a.lastSeen.time<3.8;const notice=clamp(1-d/1080,.18,.98);const chance=recentlySeen ? 0.94 : clamp(.24+notice*.70,.24,.92);if(Math.random()>chance)continue;}
   best=c;bd=d;
  }
  return best;
 }
 function aiUpdate(a,dt){
  if(!a.alive)return;a.think-=dt;a.fireCD=Math.max(0,a.fireCD-dt);if(a.reload>0){a.reload-=dt;if(a.reload<=0){let g=gunDefs[a.weapon],need=g.mag-a.ammo,take=Math.min(need,a.reserve);a.ammo+=take;a.reserve-=take;syncAmmo(a);}}
- if(a.think<=0){a.think=rand(.22,.55);let t=actorTarget(a);if(t){a.target=t;a.lastSeen={x:t.x,y:t.y,time:elapsed};a.ai="fight";a.alert=Math.min(1,a.alert+.25);}else if(a.ai==="fight"&&(!a.lastSeen||elapsed-a.lastSeen.time>7)){a.ai="investigate";a.target=null;}else if(a.ai==="fight"&&a.lastSeen&&elapsed-a.lastSeen.time>2){a.ai="investigate";a.target=null;}
+ if(a.think<=0){a.think=rand(.13,.30);let t=actorTarget(a);if(t){a.target=t;a.lastSeen={x:t.x,y:t.y,time:elapsed};a.ai="fight";a.alert=Math.min(1,a.alert+.25);}else if(a.ai==="fight"&&(!a.lastSeen||elapsed-a.lastSeen.time>7)){a.ai="investigate";a.target=null;}else if(a.ai==="fight"&&a.lastSeen&&elapsed-a.lastSeen.time>2){a.ai="investigate";a.target=null;}
   if(a.ai==="loot"&&Math.random()<.25)a.ai="wander";
-  if(a.ai==="wander"||a.ai==="loot"){a.target=null;if(!a.moveTarget||Math.random()<.25)a.moveTarget={x:clamp(a.x+rand(-350,350),30,WORLD.w-30),y:clamp(a.y+rand(-350,350),30,WORLD.h-30)};}
+  if(a.ai==="wander"||a.ai==="loot"){a.target=null;if(!a.moveTarget||Math.random()<.25){const angle=rand(0,TAU),radius=Math.sqrt(Math.random())*Math.max(120,zone.r*.54);a.moveTarget={x:clamp(zone.x+Math.cos(angle)*radius,60,WORLD.w-60),y:clamp(zone.y+Math.sin(angle)*radius,60,WORLD.h-60)};}}
   if(a.ai==="investigate"&&a.lastHeard&&elapsed-a.lastHeard.time>13){a.ai="wander";a.lastHeard=null;}
  }
+ // Keep bots and bosses away from the outer ring. They head inward before the storm reaches them.
+ const centerDistance=Math.hypot(a.x-zone.x,a.y-zone.y);
+ if(centerDistance>Math.max(180,zone.r*.68)){
+  a.ai="returning";a.target=null;moveToward(a,zone.x,zone.y,dt,1.55);return;
+ }
+ if(a.ai==="returning"){a.ai="wander";a.target=null;a.moveTarget=null;}
  if(a.ai==="fight"&&a.target&&a.target.alive){
   let t=a.target,d=dist(a,t),ang=Math.atan2(t.y-a.y,t.x-a.x);a.angle=ang;
   if(a.isPlayer===false&&d<650&&!lineBlocked(a.x,a.y,t.x,t.y)){if(d>235)moveToward(a,t.x,t.y,dt,1);else if(d<135)moveToward(a,a.x-Math.cos(ang)*120,a.y-Math.sin(ang)*120,dt,1);else{let sx=-Math.sin(ang)*a.strafe,sy=Math.cos(ang)*a.strafe;collisionMove(a,sx*a.speed*dt*.65,sy*a.speed*dt*.65);}}
-  if(d<gunDefs[a.weapon].range&&!lineBlocked(a.x,a.y,t.x,t.y)){if(a.ammo<=0)reload(a);else if(d<gunDefs[a.weapon].range*.88)fire(a,ang+rand(-.035,.035));}
-  if(a.hp<45&&a.meds>0&&Math.random()<.018)heal(a);
+  if(d<gunDefs[a.weapon].range&&!lineBlocked(a.x,a.y,t.x,t.y)){if(a.ammo<=0)reload(a);else if(d<gunDefs[a.weapon].range*.96)fire(a,ang+rand(-.018,.018));}
+  if(a.hp<62&&a.meds>0&&Math.random()<.16)heal(a);
  }else{
   let target=a.ai==="investigate"?(a.lastHeard||a.lastSeen):a.moveTarget;
   if(target){let d=Math.hypot(target.x-a.x,target.y-a.y);if(d>18){let ang=Math.atan2(target.y-a.y,target.x-a.x);a.angle=ang;moveToward(a,target.x,target.y,dt,1);}}
   // Opportunistic loot: bots can pick up supplies and upgrade weapons.
-  if(Math.random()<.008){let nearest=null,nd=85;for(const l of loot){let d=Math.hypot(l.x-a.x,l.y-a.y);if(d<nd){nd=d;nearest=l;}}if(nearest){if(nearest.type==="medkit")a.meds++;if(nearest.type==="ammo")a.reserve+=nearest.amount;if(nearest.type==="gun"&&gunDefs[nearest.gun].damage>gunDefs[a.weapon].damage){storeGun(a,nearest.gun)}if(nearest.type==="shard"&&Math.random()<.3){a.shards=Math.min(MAX_SHARDS,(a.shards||0)+1)}if(nearest.type==="botSpirit"&&a.spirit<0){a.spirit=nearest.spiritId}loot.splice(loot.indexOf(nearest),1);}}
+  if(Math.random()<.008){let nearest=null,nd=85;for(const l of loot){if(l.type==="botSpirit"&&a.spirit>=0)continue;let d=Math.hypot(l.x-a.x,l.y-a.y);if(d<nd){nd=d;nearest=l;}}if(nearest){if(nearest.type==="medkit")a.meds++;if(nearest.type==="ammo")a.reserve+=nearest.amount;if(nearest.type==="gun"&&gunDefs[nearest.gun].damage>gunDefs[a.weapon].damage){storeGun(a,nearest.gun)}if(nearest.type==="shard"&&Math.random()<.3){a.shards=Math.min(MAX_SHARDS,(a.shards||0)+1)}if(nearest.type==="botSpirit"&&a.spirit<0){a.spirit=nearest.spiritId;a.spiritBossOnly=!!nearest.bossOnly}loot.splice(loot.indexOf(nearest),1);}}
  }
- // During the storm, bots and bosses prioritize returning to the safe circle.
- // Damage itself is handled centrally in update(), so every entity is affected equally.
- if(elapsed>zone.shrinkDelay && Math.hypot(a.x-zone.x,a.y-zone.y)>zone.r-a.r*.35){
-  a.ai="returning";a.target=null;
-  moveToward(a,zone.x,zone.y,dt,1.18);
- }
+ // Storm damage is handled centrally in update(); AI has already been pushed toward the center above.
 }
-function moveToward(a,x,y,dt,mult=1){let dx=x-a.x,dy=y-a.y,d=Math.hypot(dx,dy)||1;let sp=a.speed;let sid=a.isPlayer?(equippedSpirit()?.id??-1):a.spirit;let perk=spiritEffect(sid);if(perk)sp*=1+perk.speed/100;collisionMove(a,dx/d*sp*dt*mult,dy/d*sp*dt*mult);a.walk+=dt*8;}
+function moveToward(a,x,y,dt,mult=1){let dx=x-a.x,dy=y-a.y,d=Math.hypot(dx,dy)||1;let sp=a.speed;if(!a.isPlayer)sp*=1.22;let sid=a.isPlayer?(equippedSpirit()?.id??-1):a.spirit;let perk=spiritEffect(sid);if(perk)sp*=1+perk.speed/100;collisionMove(a,dx/d*sp*dt*mult,dy/d*sp*dt*mult);a.walk+=dt*8;}
 function update(dt){
  if(gameState!=="playing")return;elapsed+=dt;if(compassReveal>0)compassReveal=Math.max(0,compassReveal-dt);updateCompassButton();player.fireCD=Math.max(0,player.fireCD-dt);if(player.reload>0){player.reload-=dt;if(player.reload<=0){let g=gunDefs[player.weapon],need=g.mag-player.ammo,take=Math.min(need,player.reserve);player.ammo+=take;player.reserve-=take;syncAmmo(player);}}
  let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0),len=Math.hypot(dx,dy)||1;
@@ -403,7 +396,7 @@ function update(dt){
  document.getElementById("zoneText").textContent=elapsed<zone.shrinkDelay?"Safe zone: warming up":playerOutside?"⚠ OUTSIDE SAFE ZONE · TAKING DAMAGE":"Safe zone shrinking · stay inside";
  document.getElementById("medText").textContent=player.meds;
  document.getElementById("quickSlots").textContent=player.inventory.map((id,i)=>(i+1)+" "+(id<0?"—":gunDefs[id].name)).join("　");
- if(alive===1&&player.alive){gameState="ended";document.getElementById("endTitle").textContent="🏆 Victory!";document.getElementById("endMessage").textContent=`You're the last Squinka standing! Eliminations: ${kills}.`;showOnly(endMenu);}
+ if(alive===1&&player.alive){matchActive=false;matchSpiritIds=new Set();persist();gameState="ended";document.getElementById("endTitle").textContent="🏆 Victory!";document.getElementById("endMessage").textContent=`You're the last Squinka standing! Eliminations: ${kills}.`;showOnly(endMenu);}
 }
 function drawGround(){
  ctx.fillStyle="#70ad50";ctx.fillRect(0,0,W,H);
@@ -502,6 +495,7 @@ function draw(){
 function frame(now){let dt=Math.min(.033,(now-lastTime)/1000||0);lastTime=now;if(gameState==="playing")update(dt);draw();requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 renderBook();
+if(interruptedMatchRecovery){const notice=document.getElementById("startupNotice");notice.textContent="A previous match was closed or refreshed before it ended. To keep matches fair, its equipped Spirit and Spirits found that match were lost. Your other saved Spirits and Spirit Shards remain.";notice.style.color="#ffbf9c";}
 })();
 </script>
 </body>
