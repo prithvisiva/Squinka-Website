@@ -69,6 +69,9 @@ h1{margin:0 0 6px;font-size:clamp(28px,5vw,48px);color:var(--gold)}h2{margin:5px
     <div class="row">
       <button id="startBtn">▶ Start Match</button>
       <button id="openBookMenu">📖 Spirit Book</button>
+      <button id="exportSaveMenuBtn">💾 Save Spirit Data</button>
+      <button id="importSaveMenuBtn">📂 Load Spirit Data</button>
+      <input id="importSaveFile" type="file" accept="application/json,.json" hidden>
       <button id="resetSaveBtn">Reset collection save</button>
       <button id="websiteMenuBtn">Go back to the squinka website</button>
     </div>
@@ -81,6 +84,11 @@ h1{margin:0 0 6px;font-size:clamp(28px,5vw,48px);color:var(--gold)}h2{margin:5px
       <div class="panel">Shards: <b id="bookShards">0</b></div>
       <div class="panel">Collected: <b id="bookCount">0 / 100</b></div>
       <div class="panel">Equipped: <b id="equippedName">None</b></div>
+    </div>
+    <div class="row" style="margin:12px 0">
+      <button id="exportSaveBookBtn">💾 Download Save Backup</button>
+      <button id="importSaveBookBtn">📂 Import Save Backup</button>
+      <span class="muted">Your collection auto-saves in this browser. Download a backup to keep a copy.</span>
     </div>
     <p class="muted">Some entries stay mysterious until discovered. Boss-only Spirits have a crown marker.</p>
     <div id="spiritGrid"></div>
@@ -105,6 +113,7 @@ addEventListener("resize",resize);resize();
 const WORLD={w:5200,h:5200}, TAU=Math.PI*2;
 const rand=(a,b)=>a+Math.random()*(b-a), pick=a=>a[Math.floor(Math.random()*a.length)], clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const saveKey="squinkaRoyaleSaveV1";
+const MAX_SHARDS=3;
 const gunDefs=[
  {name:"Squinka Pistol",damage:18,mag:12,reload:1.25,rate:.28,speed:10,range:520,spread:.055,color:"#ffe08a"},
  {name:"Rapid Pistol",damage:11,mag:24,reload:1.45,rate:.12,speed:10,range:480,spread:.10,color:"#ffd18a"},
@@ -150,8 +159,34 @@ const spirits=spiritNames.map((name,i)=>{
  return {id:i,name,rarity:rarities[Math.min(6,Math.floor(i/15))],color:rarityColors[Math.min(6,Math.floor(i/15))],icon:spiritIcons[i%spiritIcons.length],bossOnly:[17,27,37,47,57,67,77,87,97,99].includes(i),effect:e,ability:`Unique spirit mix: +${e.damage}% damage, ${e.fire}% faster firing, ${e.resistance}% damage resistance, +${e.healing}% healing, +${e.speed}% speed, +${e.range}% range, and +${e.loot}% loot chance.`};
 });
 let saved=loadSave();
-function loadSave(){try{let s=JSON.parse(localStorage.getItem(saveKey)||"{}");return {unlocked:Array.isArray(s.unlocked)?s.unlocked:[],equipped:Number.isInteger(s.equipped)?s.equipped:-1,shards:Math.min(MAX_SHARDS,Math.max(0,s.shards|0)),bestKills:s.bestKills|0};}catch{return {unlocked:[],equipped:-1,shards:0,bestKills:0}}}
-function persist(){try{localStorage.setItem(saveKey,JSON.stringify(saved))}catch{}}
+function cleanSaveData(s){
+ const unlocked=[...new Set((Array.isArray(s.unlocked)?s.unlocked:[]).filter(id=>Number.isInteger(id)&&id>=0&&id<spirits.length))];
+ const equipped=Number.isInteger(s.equipped)&&unlocked.includes(s.equipped)?s.equipped:-1;
+ return {unlocked,equipped,shards:Math.min(MAX_SHARDS,Math.max(0,Number.isFinite(Number(s.shards))?Math.floor(Number(s.shards)):0)),bestKills:Math.max(0,Number.isFinite(Number(s.bestKills))?Math.floor(Number(s.bestKills)):0)};
+}
+function loadSave(){try{return cleanSaveData(JSON.parse(localStorage.getItem(saveKey)||"{}"));}catch{return {unlocked:[],equipped:-1,shards:0,bestKills:0}}}
+function persist(){try{localStorage.setItem(saveKey,JSON.stringify(saved));return true}catch{return false}}
+function exportSave(){
+ const backup={game:"Squinka Royale",version:1,exportedAt:new Date().toISOString(),saved:cleanSaveData(saved)};
+ const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="squinka-royale-spirit-save.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ toast("Spirit save backup downloaded!");
+}
+function requestSaveImport(){
+ if(gameState==="playing"||gameState==="paused"){toast("Go to the main menu before importing a save.");return}
+ const input=document.getElementById("importSaveFile");input.value="";input.click();
+}
+document.getElementById("importSaveFile").addEventListener("change",async e=>{
+ const file=e.target.files&&e.target.files[0];if(!file)return;
+ try{
+  const data=JSON.parse(await file.text());
+  const candidate=data&&data.saved&&typeof data.saved==="object"?data.saved:data;
+  if(!candidate||!Array.isArray(candidate.unlocked))throw new Error("That file does not contain a Squinka Royale Spirit collection.");
+  if(!confirm("Load this save and replace the collection currently in this browser? Download a backup first if you want to keep both."))return;
+  saved=cleanSaveData(candidate);matchSpiritIds=new Set();persist();renderBook();toast("Spirit data loaded successfully!");
+ }catch(err){alert("Could not load that save file. Choose a Squinka Royale save backup JSON file.");}
+});
+window.addEventListener("beforeunload",()=>{persist()});
 const keys={},mouse={x:W/2,y:H/2,down:false};addEventListener("keydown",e=>{keys[e.key.toLowerCase()]=true;if([" ","arrowup","arrowdown","arrowleft","arrowright"].includes(e.key.toLowerCase()))e.preventDefault();if(e.key.toLowerCase()==="escape")togglePause();if(e.key.toLowerCase()==="r")reload(player);if(e.key.toLowerCase()==="e")pickup();if(e.key.toLowerCase()==="h")heal(player);if(e.key.toLowerCase()==="c")useCompass();if(e.key>="1"&&e.key<="3")switchWeapon(+e.key-1);});
 addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 canvas.addEventListener("mousemove",e=>{mouse.x=e.clientX;mouse.y=e.clientY});canvas.addEventListener("mousedown",e=>{if(e.button===0)mouse.down=true});addEventListener("mouseup",e=>{if(e.button===0)mouse.down=false});canvas.addEventListener("contextmenu",e=>e.preventDefault());
@@ -161,7 +196,6 @@ const overlay=document.getElementById("overlay"),mainMenu=document.getElementByI
 function showOnly(panel){for(const p of [mainMenu,bookMenu,pauseMenu,endMenu])p.classList.toggle("hidden",p!==panel);overlay.style.display=panel?"flex":"none"}
 function toast(t){toastText=t;toastTimer=2.5;document.getElementById("toast").textContent=t}
 function equippedSpirit(){return saved.equipped>=0?spirits[saved.equipped]:null}
-const MAX_SHARDS=3;
 function addShards(amount=1){const before=saved.shards;saved.shards=Math.min(MAX_SHARDS,saved.shards+amount);persist();renderBook();return saved.shards-before;}
 function newActor(x,y,isPlayer=false,boss=false){return {x,y,r:boss?25:13,hp:boss?650:100,maxHp:boss?650:100,shield:0,angle:0,isPlayer,boss,alive:true,speed:boss?90:rand(95,125),weapon:isPlayer?0:Math.floor(rand(0,10)),ammo:0,reserve:0,reload:0,fireCD:rand(0,.7),meds:boss?0:Math.random()<.35?1:0,ai:"loot",target:null,lastSeen:null,lastHeard:null,alert:0,think:0,strafe:Math.random()<.5?-1:1,seed:Math.random()*10,spirit:Math.random()<.12?pick(spirits.filter(sp=>!sp.bossOnly)).id:-1,walk:Math.random()*10,name:isPlayer?"You":"Squinka",lootValue:0};}
 function startMatch(){
@@ -236,6 +270,10 @@ function renderBook(){
 function openBook(){renderBook();showOnly(bookMenu)}
 document.getElementById("bookBtn").onclick=openBook;document.getElementById("openBookMenu").onclick=openBook;document.getElementById("pauseBookBtn").onclick=openBook;document.getElementById("endBookBtn").onclick=openBook;document.getElementById("closeBook").onclick=()=>{if(gameState==="playing")showOnly(null);else if(gameState==="paused")showOnly(pauseMenu);else showOnly(mainMenu)};
 document.getElementById("startBtn").onclick=startMatch;
+document.getElementById("exportSaveMenuBtn").onclick=exportSave;
+document.getElementById("exportSaveBookBtn").onclick=exportSave;
+document.getElementById("importSaveMenuBtn").onclick=requestSaveImport;
+document.getElementById("importSaveBookBtn").onclick=requestSaveImport;
 document.getElementById("resetSaveBtn").onclick=()=>{if(confirm("Reset all unlocked Spirits, shards, and collection progress?")){saved={unlocked:[],equipped:-1,shards:0,bestKills:0};persist();renderBook();toast("Collection reset")}};
 document.getElementById("pauseBtn").onclick=togglePause;document.getElementById("resumeBtn").onclick=()=>{gameState="playing";showOnly(null);lastTime=performance.now()};
 document.getElementById("backMenuBtn").onclick=()=>{gameState="menu";showOnly(mainMenu)};document.getElementById("againBtn").onclick=startMatch;document.getElementById("endMainBtn").onclick=()=>{gameState="menu";showOnly(mainMenu)};document.getElementById("websiteBtn").onclick=()=>{window.location.href="index.html"};document.getElementById("websiteMenuBtn").onclick=()=>{window.location.href="index.html"};
