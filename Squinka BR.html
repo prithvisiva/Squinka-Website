@@ -22,9 +22,9 @@ button{background:#284765;color:white;border:1px solid #7393b1;border-radius:8px
 h1{margin:0 0 6px;font-size:clamp(28px,5vw,48px);color:var(--gold)}h2{margin:5px 0 12px}p{line-height:1.45;color:#d6e5f2}
 .menuGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:16px 0}
 .menuCard{border:1px solid #405b76;background:#1a2d42;border-radius:12px;padding:12px}
-#spiritGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
+#spiritGrid,#cosmeticGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
 .spiritCard{background:#1b3046;border:1px solid #47627c;border-radius:10px;padding:10px;min-height:140px}
-.spiritIcon{font-size:30px}.muted{color:#9fb4c8;font-size:13px}.gold{color:var(--gold)}.cyan{color:var(--cyan)}
+.spiritIcon{font-size:30px}.muted{color:#9fb4c8;font-size:13px}.cosmeticCard{background:#1b3046;border:1px solid #47627c;border-radius:10px;padding:12px;min-height:130px}.codeInput{background:#071522;color:#fff;border:1px solid #7393b1;border-radius:8px;padding:11px;font:inherit;min-width:min(320px,100%)}.gold{color:var(--gold)}.cyan{color:var(--cyan)}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.hidden{display:none!important}
 .smallBtn{font-size:12px;padding:5px 8px}.danger{color:#ff9c9c}
 @media(max-width:600px){#topLeft{min-width:0;width:190px;font-size:12px}#topRight{font-size:12px}#bottom{bottom:8px}#status{display:none}.panel{padding:8px}button{padding:7px 9px}}
@@ -35,10 +35,11 @@ h1{margin:0 0 6px;font-size:clamp(28px,5vw,48px);color:var(--gold)}h2{margin:5px
 <div id="hud">
   <div id="topLeft" class="panel">
     <b>😺 SQUINKA ROYALE</b>
-    <div id="healthText">Health 100 / 100</div><div class="bar"><div id="healthBar" class="fill"></div></div>
+    <div id="healthText">Health 100 / 200</div><div class="bar"><div id="healthBar" class="fill"></div></div>
     <div id="shieldText">Shield 0</div><div class="bar"><div id="shieldBar" class="fill" style="background:#69caff;width:0%"></div></div>
     <div id="weaponText">Squinka Pistol · 12 / 12</div>
     <div id="ammoText" class="muted">Reserve ammo: 60</div>
+    <div id="progressText" class="muted">Level 1 · 0 / 150 XP</div><div id="tokenText" class="muted">Squinka Tokens: 0</div>
   </div>
   <div id="topRight" class="panel">
     <div id="aliveText">Squinkas remaining: 151</div>
@@ -63,15 +64,18 @@ h1{margin:0 0 6px;font-size:clamp(28px,5vw,48px);color:var(--gold)}h2{margin:5px
     <div class="menuGrid">
       <div class="menuCard"><b>🌲 Huge world</b><p class="muted">Forests, rocks, buildings, roads, rare abandoned cars, loot, and hidden places.</p></div>
       <div class="menuCard"><b>🤖 150 armed bots</b><p class="muted">They loot, fight, heal, use cover, hear gunshots, search, and some use their own Spirit upgrades.</p></div>
-      <div class="menuCard"><b>✨ 100 Spirits</b><p class="muted">No Spirit shop and no buying. Defeat a Spirit-carrying bot or a boss, spend 1 Spirit Shard nearby, then press E to extract its Spirit. If you are eliminated or quit/reload during a match, you lose Spirits found that match and your equipped Spirit.</p></div>
+      <div class="menuCard"><b>✨ 200 Spirits</b><p class="muted">No Spirit shop and no buying. Defeat a Spirit-carrying bot or a boss, spend 1 Spirit Shard nearby, then press E to extract its Spirit. If you are eliminated or quit/reload during a match, you lose Spirits found that match and your equipped Spirit.</p></div>
       <div class="menuCard"><b>👑 Bosses</b><p class="muted">Bosses have more health and can reward rare shards or Spirits.</p></div>
     </div>
     <div class="row">
       <button id="startBtn">▶ Start Match</button>
       <button id="openBookMenu">📖 Spirit Book</button>
+      <button id="codesBtn">🎟️ Redeem Code</button>
+      <button id="cosmeticsBtn">🎨 Cosmetics Shop</button>
       <button id="resetSaveBtn">Reset collection save</button>
       <button id="websiteMenuBtn">Go back to the squinka website</button>
     </div>
+    <p id="profileProgress" class="panel" style="margin-top:12px">Level 1 · 0 / 150 XP · 0 Squinka Tokens</p>
     <p id="startupNotice" class="muted">Spirit data auto-saves in this browser. Importing old save files is disabled so losses cannot be undone with a backup. Refreshing or closing during a match counts as quitting.</p>
     <p class="muted">Tip: this is a self-contained browser game prototype. Graphics are drawn in code, so no extra downloads or libraries are needed.</p>
   </div>
@@ -80,7 +84,7 @@ h1{margin:0 0 6px;font-size:clamp(28px,5vw,48px);color:var(--gold)}h2{margin:5px
     <p>You can hold at most 3 Spirit Shards. Spirits cannot be bought or claimed from this book. Defeat a bot carrying a Spirit or defeat a boss, then spend 1 shard nearby and press E to extract the dropped Spirit. If eliminated, or if you quit/reload mid-match, Spirits found that match and your equipped Spirit are lost. Other saved Spirits stay in your Book.</p>
     <div class="row">
       <div class="panel">Shards: <b id="bookShards">0</b></div>
-      <div class="panel">Collected: <b id="bookCount">0 / 100</b></div>
+      <div class="panel">Collected: <b id="bookCount">0 / 200</b></div>
       <div class="panel">Equipped: <b id="equippedName">None</b></div>
     </div>
     <div class="row" style="margin:12px 0">
@@ -88,6 +92,19 @@ h1{margin:0 0 6px;font-size:clamp(28px,5vw,48px);color:var(--gold)}h2{margin:5px
     </div>
     <p class="muted">Some entries stay mysterious until discovered. Boss-only Spirits have a crown marker.</p>
     <div id="spiritGrid"></div>
+  </div>
+  <div class="window hidden" id="codesMenu">
+    <div class="row" style="justify-content:space-between"><h1>🎟️ Redeem Code</h1><button id="closeCodes">✕ Close</button></div>
+    <p>Enter a code to claim its reward. Each code can be redeemed once in this browser profile.</p>
+    <div class="row"><input id="codeInput" class="codeInput" maxlength="64" autocomplete="off" placeholder="Enter your code here"><button id="redeemCodeSubmit">Redeem</button></div>
+    <p id="codeMessage" class="muted">Codes are not case-sensitive.</p>
+    <div class="panel"><b>Profile progress</b><div id="codeProfileText" class="muted">Level 1 · 0 XP · 0 Tokens</div></div>
+  </div>
+  <div class="window hidden" id="cosmeticMenu">
+    <div class="row" style="justify-content:space-between"><h1>🎨 Cosmetics Shop</h1><button id="closeCosmetics">✕ Close</button></div>
+    <p>Spend Squinka Tokens on appearance-only cosmetics. Cosmetics do not change combat stats.</p>
+    <div class="panel" style="margin-bottom:12px">Your balance: <b id="cosmeticTokens">0</b> Squinka Tokens</div>
+    <div id="cosmeticGrid"></div>
   </div>
   <div class="window hidden" id="pauseMenu">
     <h1>Paused</h1><p>Take a breath, Squinka.</p>
@@ -132,7 +149,17 @@ const spiritNames=[
 "Pixel Squinka","Glitch Squinka","Hologram Squinka","Magnet Squinka","Rubber Squinka","Turbo Squinka","Titan Squinka","Tiny Titan","Vampire Squinka","Daybreak Squinka",
 "Nightfall Squinka","Lantern Squinka","Festival Squinka","Candy Squinka","Cookie Squinka","Popstar Squinka","DJ Squinka","Champion Squinka","Explorer Squinka","Treasure Squinka",
 "Ancient Squinka","Royal Squinka","Emperor Squinka","Cosmic King","Worldroot Squinka","Deepsea Squinka","Volcano Squinka","Thundercloud Squinka","Mirage Squinka","Runestone Squinka",
-"Spirit Fox Squinka","Celestial Squinka","Eclipse Squinka","Infinity Squinka","Rift Squinka","Elder Squinka","Squinka Prime","The First Spirit","Worldheart Squinka","Secret 100"
+"Spirit Fox Squinka","Celestial Squinka","Eclipse Squinka","Infinity Squinka","Rift Squinka","Elder Squinka","Squinka Prime","The First Spirit","Worldheart Squinka","Secret 100",
+"Coral Reef Squinka","Sandcastle Squinka","Starfish Squinka","Pearl Diver Squinka","Tidal Wave Squinka","Kelp Knight Squinka","Lavaheart Squinka","Ashen Phoenix Squinka","Magma Core Squinka","Cinder Squinka",
+"Snowflake Squinka","Blizzard Squinka","Arctic Fox Squinka","Aurora Bear Squinka","Permafrost Squinka","Thunderclap Squinka","Static Spark Squinka","Stormcaller Squinka","Cyclone Squinka","Tempest Squinka",
+"Sunbeam Squinka","Solar Flare Squinka","Dawnbringer Squinka","Golden Comet Squinka","Daystar Squinka","Moonbeam Squinka","Lunar Wolf Squinka","Midnight Star Squinka","Dreamcatcher Squinka","Sleepwalker Squinka",
+"Wildwood Squinka","Thornbloom Squinka","Petal Dancer Squinka","Mushroom Mage Squinka","Vinewhip Squinka","Crystal Cavern Squinka","Obsidian Guard Squinka","Quartz Sage Squinka","Prismatic Heart Squinka","Gemstorm Squinka",
+"Clockwork Squinka","Gearshift Squinka","Mecha Squinka","Circuit Sprite Squinka","Cyberpaw Squinka","Byte Bandit Squinka","Data Dragon Squinka","Neon Runner Squinka","Arcade Hero Squinka","Glitch Phantom Squinka",
+"Rubberband Squinka","Bouncy Star Squinka","Featherfall Squinka","Cloud Jumper Squinka","Sky Captain Squinka","Wind Rider Squinka","Tornado Tail Squinka","Mist Walker Squinka","Fog Lantern Squinka","Rainmaker Squinka",
+"Frostbite Fang Squinka","Icicle Dancer Squinka","Polar Guardian Squinka","Snowstorm Spirit","Candy Cane Squinka","Marshmallow Squinka","Jellybean Squinka","Gumdrop Guardian","Chocolate Comet Squinka","Caramel Knight Squinka",
+"Popcorn Star Squinka","Confetti Squinka","Firework Fox Squinka","Disco Ball Squinka","Rhythm Rider Squinka","Bassdrop Squinka","Melody Mage Squinka","Opera Star Squinka","Paintbrush Squinka","Rainbow Painter Squinka",
+"Inkblot Squinka","Origami Squinka","Storybook Squinka","Bookworm Sage Squinka","Puzzle Master Squinka","Maze Runner Squinka","Time Hopper Squinka","Chrono Cat Squinka","Future Sight Squinka","Past Echo Squinka",
+"Gravity Well Squinka","Orbit Dancer Squinka","Black Hole Squinka","Supernova Squinka","Galaxy Guardian Squinka","Cosmic Voyager Squinka","Multiverse Squinka","Ultimate Worldheart","Eternal Paw Squinka","Reality Weaver Squinka"
 ];
 const rarities=["Common","Uncommon","Rare","Epic","Legendary","Mythical","Divine"];
 const rarityColors=["#cbd5df","#73df9c","#68caff","#b89aff","#ffd76b","#ff8fcf","#ff704d"];
@@ -141,19 +168,44 @@ function spiritEffect(id){
  // Each Spirit gets its own combination of stats; the values are generated from its unique ID.
  // No two Spirits share the same complete set of bonuses.
  if(id<0||id>=spiritNames.length)return null;
- const damage=2+((id*7)%13);                 // +2% to +14% damage
- const fire=2+((id*11)%17);                   // 2% to 18% faster firing
- const resistance=1+((id*3)%9);               // 1% to 9% damage resistance
- const healing=2+((id*5)%19);                 // +2% to +20% healing
- const speed=2+((id*13)%15);                  // 2% to 16% movement speed
- const range=2+((id*17)%21);                  // 2% to 22% bullet range
- const loot=1+((id*19)%12);                   // 1% to 12% better loot chance
+ const damage=20+((id*7)%61);                 // +20% to +80% damage
+ const fire=10+((id*11)%51);                  // 10% to 60% faster firing
+ const resistance=5+((id*3)%41);              // 5% to 45% damage resistance
+ const healing=20+((id*5)%81);                // +20% to +100% healing
+ const speed=10+((id*13)%41);                 // 10% to 50% movement speed
+ const range=15+((id*17)%61);                 // 15% to 75% bullet range
+ const loot=10+((id*19)%51);                  // 10% to 60% better loot chance
  return {damage,fire,resistance,healing,speed,range,loot};
 }
 const spirits=spiritNames.map((name,i)=>{
  const e=spiritEffect(i);
- return {id:i,name,rarity:rarities[Math.min(6,Math.floor(i/15))],color:rarityColors[Math.min(6,Math.floor(i/15))],icon:spiritIcons[i%spiritIcons.length],bossOnly:[17,27,37,47,57,67,77,87,97,99].includes(i),effect:e,ability:`Unique spirit mix: +${e.damage}% damage, ${e.fire}% faster firing, ${e.resistance}% damage resistance, +${e.healing}% healing, +${e.speed}% speed, +${e.range}% range, and +${e.loot}% loot chance.`};
+ const rarityIndex=Math.min(6,Math.floor(i/(spiritNames.length/7)));
+ const bossOnly=[17,27,37,47,57,67,77,87,97,99,117,127,137,147,157,167,177,187,197,199].includes(i);
+ return {id:i,name,rarity:rarities[rarityIndex],color:rarityColors[rarityIndex],icon:spiritIcons[i%spiritIcons.length],bossOnly,effect:e,ability:`Powerful spirit mix: +${e.damage}% damage, ${e.fire}% faster firing, ${e.resistance}% damage resistance, +${e.healing}% healing, +${e.speed}% speed, +${e.range}% range, and +${e.loot}% loot chance.`};
 });
+const cosmeticCatalog=[
+ {id:"aquaTrail",name:"Aqua Tail Trail",cost:200,color:"#63efff",icon:"💧",description:"A bright water-blue aura."},
+ {id:"royalCrown",name:"Royal Crown",cost:450,color:"#ffd76b",icon:"👑",description:"A golden crown above your head."},
+ {id:"frostAura",name:"Frost Aura",cost:300,color:"#c5f5ff",icon:"❄️",description:"A chilly ice ring."},
+ {id:"pixelAura",name:"Pixel Aura",cost:350,color:"#d59cff",icon:"▦",description:"A digital purple glow."},
+ {id:"flameTail",name:"Flame Tail",cost:500,color:"#ff7d45",icon:"🔥",description:"A fiery ring around your Squinka."},
+ {id:"starHalo",name:"Star Halo",cost:650,color:"#fff2a6",icon:"⭐",description:"A shining star halo."},
+ {id:"shadowCloak",name:"Shadow Cloak",cost:750,color:"#9b8cff",icon:"🌑",description:"A dark violet aura."},
+ {id:"rainbowHalo",name:"Rainbow Halo",cost:1000,color:"#ff8fd1",icon:"🌈",description:"A dazzling rainbow-style halo."}
+];
+const CODE_REWARDS={
+ "SQUINKAWEBMEGAADMIN":{type:"allSpirits",label:"Unlock all 200 Spirits"},
+ "CATPOWER":{type:"xp",amount:2500,label:"2,500 XP"},
+ "PAWSTOKENS":{type:"tokens",amount:750,label:"750 Squinka Tokens"},
+ "GLOWPAWS":{type:"cosmetic",id:"aquaTrail",label:"Aqua Tail Trail cosmetic"},
+ "ROYALMEOW":{type:"cosmetic",id:"royalCrown",label:"Royal Crown cosmetic"},
+ "FROSTYTAIL":{type:"cosmetic",id:"frostAura",label:"Frost Aura cosmetic"},
+ "SHARDHUNTER":{type:"shards",amount:3,label:"3 Spirit Shards (up to your 3-shard limit)"},
+ "BOSSKILLER":{type:"bundle",xp:1500,tokens:350,label:"1,500 XP and 350 Tokens"},
+ "PIXELCAT":{type:"cosmetic",id:"pixelAura",label:"Pixel Aura cosmetic"},
+ "LUCKYPAW":{type:"tokens",amount:1000,label:"1,000 Squinka Tokens"},
+ "SQUINKAFOREVER":{type:"xp",amount:2000,label:"2,000 XP"}
+};
 let interruptedMatchRecovery=false;
 let matchSpiritIds=new Set();
 let matchActive=false;
@@ -161,7 +213,12 @@ let saved=loadSave();
 function cleanSaveData(s){
  const unlocked=[...new Set((Array.isArray(s.unlocked)?s.unlocked:[]).filter(id=>Number.isInteger(id)&&id>=0&&id<spirits.length))];
  const equipped=Number.isInteger(s.equipped)&&unlocked.includes(s.equipped)?s.equipped:-1;
- return {unlocked,equipped,shards:Math.min(MAX_SHARDS,Math.max(0,Number.isFinite(Number(s.shards))?Math.floor(Number(s.shards)):0)),bestKills:Math.max(0,Number.isFinite(Number(s.bestKills))?Math.floor(Number(s.bestKills)):0)};
+ const cosmeticsOwned=[...new Set((Array.isArray(s.cosmeticsOwned)?s.cosmeticsOwned:[]).filter(id=>cosmeticCatalog.some(c=>c.id===id)))];
+ const equippedCosmetic=(s.equippedCosmetic==="classic"||cosmeticsOwned.includes(s.equippedCosmetic))?s.equippedCosmetic:"classic";
+ const level=clamp(Number.isFinite(Number(s.level))?Math.floor(Number(s.level)):1,1,100);
+ const xp=Math.max(0,Math.floor(Number.isFinite(Number(s.xp))?Number(s.xp):0));
+ const redeemedCodes=[...new Set((Array.isArray(s.redeemedCodes)?s.redeemedCodes:[]).filter(code=>Object.prototype.hasOwnProperty.call(CODE_REWARDS,String(code).toUpperCase())).map(code=>String(code).toUpperCase()))];
+ return {unlocked,equipped,shards:Math.min(MAX_SHARDS,Math.max(0,Number.isFinite(Number(s.shards))?Math.floor(Number(s.shards)):0)),bestKills:Math.max(0,Number.isFinite(Number(s.bestKills))?Math.floor(Number(s.bestKills)):0),level,xp:level>=100?0:xp%xpForNext(level),tokens:Math.max(0,Math.floor(clamp(Number(s.tokens)||0,0,1000000000))),cosmeticsOwned,equippedCosmetic,redeemedCodes};
 }
 function loadSave(){
  let raw={};try{raw=JSON.parse(localStorage.getItem(saveKey)||"{}")||{};}catch{raw={};}
@@ -183,9 +240,20 @@ const keys={},mouse={x:W/2,y:H/2,down:false};addEventListener("keydown",e=>{keys
 addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 canvas.addEventListener("mousemove",e=>{mouse.x=e.clientX;mouse.y=e.clientY});canvas.addEventListener("mousedown",e=>{if(e.button===0)mouse.down=true});addEventListener("mouseup",e=>{if(e.button===0)mouse.down=false});canvas.addEventListener("contextmenu",e=>e.preventDefault());
 
-let player,bots=[],objects=[],bullets=[],particles=[],loot=[],bosses=[],zone,gameState="menu",lastTime=0,elapsed=0,kills=0,toastTimer=0,toastText="",camera={x:0,y:0},nextBoss=55,worldSeed=0,compassNextUse=120,compassReveal=0;
-const overlay=document.getElementById("overlay"),mainMenu=document.getElementById("mainMenu"),bookMenu=document.getElementById("bookMenu"),pauseMenu=document.getElementById("pauseMenu"),endMenu=document.getElementById("endMenu");
-function showOnly(panel){for(const p of [mainMenu,bookMenu,pauseMenu,endMenu])p.classList.toggle("hidden",p!==panel);overlay.style.display=panel?"flex":"none"}
+let player,bots=[],objects=[],bullets=[],particles=[],loot=[],bosses=[],zone,gameState="menu",lastTime=0,elapsed=0,kills=0,playerDamageDealt=0,bossesDefeated=0,toastTimer=0,toastText="",camera={x:0,y:0},nextBoss=55,worldSeed=0,compassNextUse=120,compassReveal=0;
+const overlay=document.getElementById("overlay"),mainMenu=document.getElementById("mainMenu"),bookMenu=document.getElementById("bookMenu"),codesMenu=document.getElementById("codesMenu"),cosmeticMenu=document.getElementById("cosmeticMenu"),pauseMenu=document.getElementById("pauseMenu"),endMenu=document.getElementById("endMenu");
+function showOnly(panel){for(const p of [mainMenu,bookMenu,codesMenu,cosmeticMenu,pauseMenu,endMenu])p.classList.toggle("hidden",p!==panel);overlay.style.display=panel?"flex":"none"}
+function xpForNext(level){return level>=100?0:100+level*50;}
+function addXP(amount){let gained=Math.max(0,Math.floor(amount));if(saved.level>=100)return 0;saved.xp+=gained;let ups=0;while(saved.level<100&&saved.xp>=xpForNext(saved.level)){saved.xp-=xpForNext(saved.level);saved.level++;ups++;}if(saved.level>=100)saved.xp=0;return ups;}
+function updateProgressUI(){
+ const need=xpForNext(saved.level),profile=`Level ${saved.level} · ${saved.level>=100?"MAX LEVEL":`${saved.xp} / ${need} XP`} · ${saved.tokens.toLocaleString()} Squinka Tokens`;
+ const short=`Level ${saved.level} · ${saved.level>=100?"MAX":`${saved.xp} / ${need} XP`}`;
+ for(const id of ["progressText"])document.getElementById(id).textContent=short;
+ document.getElementById("tokenText").textContent="Squinka Tokens: "+saved.tokens.toLocaleString();
+ document.getElementById("profileProgress").textContent=profile;
+ document.getElementById("codeProfileText").textContent=profile;
+ document.getElementById("cosmeticTokens").textContent=saved.tokens.toLocaleString();
+}
 function toast(t){toastText=t;toastTimer=2.5;document.getElementById("toast").textContent=t}
 function equippedSpirit(){return saved.equipped>=0?spirits[saved.equipped]:null}
 function loseMatchSpirits(){
@@ -200,11 +268,41 @@ function loseMatchSpirits(){
  return lostList;
 }
 function addShards(amount=1){const before=saved.shards;saved.shards=Math.min(MAX_SHARDS,saved.shards+amount);persist();renderBook();return saved.shards-before;}
-function newActor(x,y,isPlayer=false,boss=false){return {x,y,r:boss?25:13,hp:boss?650:100,maxHp:boss?650:100,shield:0,angle:0,isPlayer,boss,alive:true,speed:boss?90:rand(95,125),weapon:isPlayer?0:Math.floor(rand(0,10)),ammo:0,reserve:0,reload:0,fireCD:rand(0,.7),meds:boss?0:Math.random()<.35?1:0,ai:"loot",target:null,lastSeen:null,lastHeard:null,alert:0,think:0,strafe:Math.random()<.5?-1:1,seed:Math.random()*10,spirit:Math.random()<.12?pick(spirits.filter(sp=>!sp.bossOnly)).id:-1,walk:Math.random()*10,name:isPlayer?"You":"Squinka",lootValue:0};}
+function redeemCode(){
+ const input=document.getElementById("codeInput"),message=document.getElementById("codeMessage"),code=input.value.trim().toUpperCase(),reward=CODE_REWARDS[code];
+ if(!code){message.textContent="Enter a code first.";return;}
+ if(!reward){message.textContent="That code is not valid.";return;}
+ if(saved.redeemedCodes.includes(code)){message.textContent="You already redeemed this code.";return;}
+ saved.redeemedCodes.push(code);
+ if(reward.type==="allSpirits"){saved.unlocked=spirits.map(sp=>sp.id);if(saved.equipped<0)saved.equipped=0;}
+ else if(reward.type==="xp")addXP(reward.amount);
+ else if(reward.type==="tokens")saved.tokens+=reward.amount;
+ else if(reward.type==="shards")saved.shards=Math.min(MAX_SHARDS,saved.shards+reward.amount);
+ else if(reward.type==="cosmetic"){if(!saved.cosmeticsOwned.includes(reward.id))saved.cosmeticsOwned.push(reward.id);}
+ else if(reward.type==="bundle"){addXP(reward.xp);saved.tokens+=reward.tokens;}
+ persist();renderBook();renderCosmetics();updateProgressUI();message.textContent="Code accepted! Reward: "+reward.label+".";toast("🎟️ Code redeemed: "+reward.label+"!");input.value="";
+}
+function renderCosmetics(){
+ const grid=document.getElementById("cosmeticGrid");if(!grid)return;grid.innerHTML="";
+ for(const c of cosmeticCatalog){const owned=saved.cosmeticsOwned.includes(c.id),equipped=saved.equippedCosmetic===c.id,card=document.createElement("div");card.className="cosmeticCard";card.style.borderColor=c.color;
+  card.innerHTML=`<div style="font-size:30px;color:${c.color}">${c.icon}</div><b>${c.name}</b><p class="muted">${c.description}</p><div class="muted">${owned?"Owned":"Cost: "+c.cost.toLocaleString()+" tokens"}</div>`;
+  const btn=document.createElement("button");btn.className="smallBtn";btn.textContent=equipped?"✓ Equipped":owned?"Equip":"Buy · "+c.cost.toLocaleString();btn.disabled=equipped||(!owned&&saved.tokens<c.cost);
+  btn.onclick=()=>{if(owned){saved.equippedCosmetic=c.id;}else if(saved.tokens>=c.cost){saved.tokens-=c.cost;saved.cosmeticsOwned.push(c.id);saved.equippedCosmetic=c.id;}else{return;}persist();renderCosmetics();updateProgressUI();toast(c.name+(owned?" equipped!":" purchased and equipped!"));};card.appendChild(btn);grid.appendChild(card);
+ }
+}
+function openCodes(){document.getElementById("codeMessage").textContent="Codes are not case-sensitive.";document.getElementById("codeInput").value="";updateProgressUI();showOnly(codesMenu);}
+function openCosmetics(){renderCosmetics();updateProgressUI();showOnly(cosmeticMenu);}
+function matchRewards(won){
+ const xp=Math.max(100,Math.floor((won?650:120)+kills*90+Math.min(1600,elapsed*1.65)+Math.min(1400,playerDamageDealt*.025)+bossesDefeated*175+(won?800:0)));
+ const tokens=Math.floor(40+kills*12+Math.floor(elapsed/20)*5+bossesDefeated*40+(won?250:0));
+ const oldLevel=saved.level,ups=addXP(xp);saved.tokens+=tokens;persist();updateProgressUI();
+ return {xp,tokens,ups,oldLevel,level:saved.level};
+}
+function newActor(x,y,isPlayer=false,boss=false){return {x,y,r:boss?25:13,hp:boss?650:100,maxHp:boss?650:100,shield:0,angle:0,isPlayer,boss,alive:true,speed:boss?90:rand(95,125),weapon:isPlayer?0:Math.floor(rand(0,10)),ammo:0,reserve:0,reload:0,fireCD:rand(0,.7),meds:boss?0:Math.random()<.35?1:0,ai:"loot",target:null,lastSeen:null,lastHeard:null,alert:0,think:0,strafe:Math.random()<.5?-1:1,seed:Math.random()*10,spirit:Math.random()<.12?pick(spirits.filter(sp=>!sp.bossOnly)).id:-1,walk:Math.random()*10,name:isPlayer?"You":"Squinka",lootValue:0,botEngageAt:boss?rand(18,48):rand(28,88)};}
 function startMatch(){
  matchSpiritIds=new Set();matchActive=true;
  compassNextUse=120;compassReveal=0;updateCompassButton();
- worldSeed=Math.random()*999999;elapsed=0;kills=0;nextBoss=55;bots=[];objects=[];bullets=[];particles=[];loot=[];bosses=[];
+ worldSeed=Math.random()*999999;elapsed=0;kills=0;playerDamageDealt=0;bossesDefeated=0;nextBoss=55;bots=[];objects=[];bullets=[];particles=[];loot=[];bosses=[];
  player=newActor(WORLD.w/2,WORLD.h/2,true);player.hp=100;player.weapon=0;player.ammo=gunDefs[0].mag;player.reserve=60;player.meds=1;player.inventory=[0,-1,-1];player.shield=0;
  zone={x:WORLD.w/2,y:WORLD.h/2,r:2450,startR:2450,shrinkDelay:75,shrinkSpeed:7};
  // Scattered cover objects, with buildings and cars deliberately less common.
@@ -262,7 +360,7 @@ function pickup(){
  loot.splice(loot.indexOf(near),1);
 }
 function renderBook(){
- document.getElementById("bookShards").textContent=saved.shards;document.getElementById("bookCount").textContent=saved.unlocked.length+" / 100";
+ document.getElementById("bookShards").textContent=saved.shards;document.getElementById("bookCount").textContent=saved.unlocked.length+" / "+spirits.length;
  document.getElementById("equippedName").textContent=saved.equipped>=0?spirits[saved.equipped].name:"None";
  const grid=document.getElementById("spiritGrid");grid.innerHTML="";
  spirits.forEach(s=>{const got=saved.unlocked.includes(s.id),card=document.createElement("div");card.className="spiritCard";card.style.borderColor=got?s.color:"#47627c";
@@ -272,8 +370,8 @@ function renderBook(){
 }
 function openBook(){renderBook();showOnly(bookMenu)}
 document.getElementById("bookBtn").onclick=openBook;document.getElementById("openBookMenu").onclick=openBook;document.getElementById("pauseBookBtn").onclick=openBook;document.getElementById("endBookBtn").onclick=openBook;document.getElementById("closeBook").onclick=()=>{if(gameState==="playing")showOnly(null);else if(gameState==="paused")showOnly(pauseMenu);else showOnly(mainMenu)};
-document.getElementById("startBtn").onclick=startMatch;
-document.getElementById("resetSaveBtn").onclick=()=>{if(confirm("Reset all unlocked Spirits, shards, and collection progress?")){saved={unlocked:[],equipped:-1,shards:0,bestKills:0};persist();renderBook();toast("Collection reset")}};
+document.getElementById("startBtn").onclick=startMatch;document.getElementById("codesBtn").onclick=openCodes;document.getElementById("cosmeticsBtn").onclick=openCosmetics;document.getElementById("redeemCodeSubmit").onclick=redeemCode;document.getElementById("codeInput").addEventListener("keydown",e=>{if(e.key==="Enter")redeemCode()});document.getElementById("closeCodes").onclick=()=>showOnly(mainMenu);document.getElementById("closeCosmetics").onclick=()=>showOnly(mainMenu);
+document.getElementById("resetSaveBtn").onclick=()=>{if(confirm("Reset all unlocked Spirits, shards, XP, tokens, cosmetics, and code progress? This cannot be undone.")){saved={unlocked:[],equipped:-1,shards:0,bestKills:0,level:1,xp:0,tokens:0,cosmeticsOwned:[],equippedCosmetic:"classic",redeemedCodes:[]};persist();renderBook();renderCosmetics();updateProgressUI();toast("Collection and profile reset")}};
 document.getElementById("pauseBtn").onclick=togglePause;document.getElementById("resumeBtn").onclick=()=>{gameState="playing";showOnly(null);lastTime=performance.now()};
 document.getElementById("backMenuBtn").onclick=()=>{if(confirm("Return to the main menu? This counts as forfeiting: you will lose your equipped Spirit and any Spirits found during this match.")){const lost=loseMatchSpirits();gameState="menu";document.getElementById("startupNotice").textContent=lost.length?"Match forfeited. Lost Spirits: "+lost.map(id=>spirits[id].name).join(", ")+". Your other saved Spirits remain." :"Match forfeited. Your equipped Spirit was lost if you had one. Your other saved Spirits remain.";document.getElementById("startupNotice").classList.remove("hidden");showOnly(mainMenu)}};document.getElementById("againBtn").onclick=startMatch;document.getElementById("endMainBtn").onclick=()=>{gameState="menu";showOnly(mainMenu)};document.getElementById("websiteBtn").onclick=()=>{window.location.href="index.html"};document.getElementById("websiteMenuBtn").onclick=()=>{window.location.href="index.html"};
 function togglePause(){if(gameState==="playing"){gameState="paused";showOnly(pauseMenu)}else if(gameState==="paused"){gameState="playing";showOnly(null);lastTime=performance.now()}}
@@ -300,9 +398,9 @@ function fire(a,angle){
 function damage(a,amount,source){
  if(!a.alive)return;let reduction=0;
  let sid=a.isPlayer?(equippedSpirit()?.id??-1):a.spirit;let perk=spiritEffect(sid);if(perk)reduction=perk.resistance/100;
- amount*=1-reduction;if(a.shield>0){let take=Math.min(a.shield,amount);a.shield-=take;amount-=take;}a.hp-=amount;burst(a.x,a.y,a.boss?"#ff755f":"#ffdc9b",3);
+ amount*=1-reduction;if(source===player)playerDamageDealt+=amount;if(a.shield>0){let take=Math.min(a.shield,amount);a.shield-=take;amount-=take;}a.hp-=amount;burst(a.x,a.y,a.boss?"#ff755f":"#ffdc9b",3);
  if(a.hp<=0){a.hp=0;a.alive=false;burst(a.x,a.y,a.boss?"#ff704d":"#a7e9ff",20);
-  if(a.boss){let shardCount=2+Math.floor(Math.random()*2);for(let i=0;i<shardCount&&saved.shards<MAX_SHARDS;i++){loot.push({x:a.x+rand(-28,28),y:a.y+rand(-28,28),type:"shard",amount:1,spin:0});}const pool=spirits.filter(sp=>sp.bossOnly&&!saved.unlocked.includes(sp.id));if(pool.length){const sp=pick(pool);loot.push({x:a.x+rand(-32,32),y:a.y+rand(-32,32),type:"botSpirit",spiritId:sp.id,bossOnly:true,amount:1,spin:0});toast(a.name+" defeated! A rare Boss Spirit dropped — use 1 shard and press E to extract it.");}else toast(a.name+" defeated! Spirit Shards found!");}
+  if(a.boss){if(source===player)bossesDefeated++;let shardCount=2+Math.floor(Math.random()*2);for(let i=0;i<shardCount&&saved.shards<MAX_SHARDS;i++){loot.push({x:a.x+rand(-28,28),y:a.y+rand(-28,28),type:"shard",amount:1,spin:0});}const pool=spirits.filter(sp=>sp.bossOnly&&!saved.unlocked.includes(sp.id));if(pool.length){const sp=pick(pool);loot.push({x:a.x+rand(-32,32),y:a.y+rand(-32,32),type:"botSpirit",spiritId:sp.id,bossOnly:true,amount:1,spin:0});toast(a.name+" defeated! A rare Boss Spirit dropped — use 1 shard and press E to extract it.");}else toast(a.name+" defeated! Spirit Shards found!");}
   else{loot.push(makeLoot(a.x+rand(-20,20),a.y+rand(-20,20)));if(Math.random()<.22)loot.push({x:a.x+rand(-20,20),y:a.y+rand(-20,20),type:"shard",amount:1,spin:0});if(a.spirit>=0&&!saved.unlocked.includes(a.spirit)){loot.push({x:a.x+rand(-22,22),y:a.y+rand(-22,22),type:"botSpirit",spiritId:a.spirit,bossOnly:!!a.spiritBossOnly,amount:1,spin:0});}}
   if(source===player){kills++;if(kills>saved.bestKills){saved.bestKills=kills;persist();}}
   if(a.isPlayer){
@@ -310,18 +408,23 @@ function damage(a,amount,source){
    // Spirits saved from earlier matches remain in the Book unless one was equipped at death.
    const lostList=loseMatchSpirits();
    gameState="ended";
-   document.getElementById("endMessage").textContent=lostList.length>0
-    ? `Eliminations: ${kills}. You lost ${lostList.length} Spirit${lostList.length===1?"":"s"}: ${lostList.map(id=>spirits[id].name).join(", ")}. This includes Spirits you collected in this match and the Spirit equipped when you died. Your other saved Spirits remain in your Spirit Book.`
-    : `Eliminations: ${kills}. You had no Spirits from this match or equipped Spirit to lose. Your saved Spirit Book collection remains safe.`;
+   const reward=matchRewards(false);
+   const progress=`Rewards: +${reward.xp.toLocaleString()} XP and +${reward.tokens.toLocaleString()} Squinka Tokens. Level ${saved.level}${reward.ups?` (LEVEL UP +${reward.ups}!)`:""}.`;
+   document.getElementById("endMessage").textContent=(lostList.length>0
+    ? `Eliminations: ${kills}. You lost ${lostList.length} Spirit${lostList.length===1?"":"s"}: ${lostList.map(id=>spirits[id].name).join(", ")}. This includes Spirits you collected in this match and the Spirit equipped when you died. Your other saved Spirits remain in your Spirit Book. `
+    : `Eliminations: ${kills}. Your saved Spirit Book collection remains safe except for any Spirit that was equipped. `)+progress;
    document.getElementById("endTitle").textContent="You were eliminated!";
    showOnly(endMenu);
   }
  }
 }
+function activeBotSkirmishers(){return [...bots,...bosses].filter(b=>b.alive&&b.ai==="fight"&&b.target&&!b.target.isPlayer).length;}
 function actorTarget(a){
  if(a.isPlayer)return null;let best=null,bd=Infinity;
- // Stronger sight: bots recognize the player from much farther away, but cover still blocks vision.
- const candidates=[player,...bots,...bosses];for(const c of candidates){if(c===a||!c.alive||c===player&&!player.alive)continue;let d=dist(a,c);const sightRange=c===player?(a.boss?1120:900):(a.boss?820:650);if(d>sightRange||d>bd)continue;if(lineBlocked(a.x,a.y,c.x,c.y))continue;
+ // Bots don't start fighting one another immediately. Their individual truce timers stagger skirmishes.
+ const candidates=[player,...bots,...bosses];for(const c of candidates){if(c===a||!c.alive||c===player&&!player.alive)continue;
+  if(!c.isPlayer){if(elapsed<Math.max(a.botEngageAt||45,c.botEngageAt||45))continue;const active=activeBotSkirmishers();if(active>=12&&a.target!==c)continue;}
+  let d=dist(a,c);const sightRange=c===player?(a.boss?1120:900):(a.boss?820:650);if(d>sightRange||d>bd)continue;if(lineBlocked(a.x,a.y,c.x,c.y))continue;
   if(c===player){const recentlySeen=a.lastSeen&&elapsed-a.lastSeen.time<3.8;const notice=clamp(1-d/1080,.18,.98);const chance=recentlySeen ? 0.94 : clamp(.24+notice*.70,.24,.92);if(Math.random()>chance)continue;}
   best=c;bd=d;
  }
@@ -366,7 +469,10 @@ function update(dt){
  for(const p of bullets){p.x+=p.vx*dt;p.y+=p.vy*dt;p.travel+=Math.hypot(p.vx,p.vy)*dt;p.life-=dt;
   if(p.life<=0||p.travel>p.range){p.dead=true;continue}
   for(const o of objects){if(o.type==="building"&&p.x>o.x&&p.x<o.x+o.w&&p.y>o.y&&p.y<o.y+o.h){p.dead=true;break;}if(o.type==="car"&&Math.abs(p.x-o.x)<o.w/2&&Math.abs(p.y-o.y)<o.h/2){p.dead=true;break;}if((o.type==="tree"||o.type==="rock")&&Math.hypot(p.x-o.x,p.y-o.y)<o.r*.72){p.dead=true;break;}}
-  if(p.dead)continue;let actors=[player,...bots,...bosses];for(const a of actors){if(!a.alive||a===p.owner)continue;if(p.owner.isPlayer&&a.isPlayer)continue;if(!p.owner.isPlayer&&!a.isPlayer&&Math.random()<.5)continue;if(Math.hypot(p.x-a.x,p.y-a.y)<a.r+4){damage(a,p.damage,p.owner);p.dead=true;break;}}
+  if(p.dead)continue;let actors=[player,...bots,...bosses];for(const a of actors){if(!a.alive||a===p.owner)continue;if(p.owner.isPlayer&&a.isPlayer)continue;
+  // Before the bot truce expires, enemy bullets cannot damage other bots. Afterward they only hit their chosen target, keeping fights limited.
+  if(!p.owner.isPlayer&&!a.isPlayer){if(elapsed<Math.max(p.owner.botEngageAt||0,a.botEngageAt||0)||a!==p.owner.target)continue;}
+  if(Math.hypot(p.x-a.x,p.y-a.y)<a.r+4){damage(a,p.damage,p.owner);p.dead=true;break;}}
  }
  bullets=bullets.filter(p=>!p.dead);
  for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;p.vx*=.96;p.vy*=.96}particles=particles.filter(p=>p.life>0);
@@ -396,7 +502,7 @@ function update(dt){
  document.getElementById("zoneText").textContent=elapsed<zone.shrinkDelay?"Safe zone: warming up":playerOutside?"⚠ OUTSIDE SAFE ZONE · TAKING DAMAGE":"Safe zone shrinking · stay inside";
  document.getElementById("medText").textContent=player.meds;
  document.getElementById("quickSlots").textContent=player.inventory.map((id,i)=>(i+1)+" "+(id<0?"—":gunDefs[id].name)).join("　");
- if(alive===1&&player.alive){matchActive=false;matchSpiritIds=new Set();persist();gameState="ended";document.getElementById("endTitle").textContent="🏆 Victory!";document.getElementById("endMessage").textContent=`You're the last Squinka standing! Eliminations: ${kills}.`;showOnly(endMenu);}
+ if(alive===1&&player.alive){matchActive=false;matchSpiritIds=new Set();const reward=matchRewards(true);persist();gameState="ended";document.getElementById("endTitle").textContent="🏆 Victory!";document.getElementById("endMessage").textContent=`You're the last Squinka standing! Eliminations: ${kills}. Rewards: +${reward.xp.toLocaleString()} XP and +${reward.tokens.toLocaleString()} Squinka Tokens. Level ${saved.level}${reward.ups?` (LEVEL UP +${reward.ups}!)`:""}.`;showOnly(endMenu);}
 }
 function drawGround(){
  ctx.fillStyle="#70ad50";ctx.fillRect(0,0,W,H);
@@ -433,6 +539,8 @@ function drawActor(a){
  ctx.beginPath();ctx.moveTo(-12,-15);ctx.lineTo(-13,-29);ctx.lineTo(-3,-20);ctx.closePath();ctx.fill();
  ctx.beginPath();ctx.moveTo(4,-20);ctx.lineTo(14,-29);ctx.lineTo(13,-14);ctx.closePath();ctx.fill();
  ctx.fillStyle="#f39cae";ctx.beginPath();ctx.moveTo(-10,-19);ctx.lineTo(-11,-25);ctx.lineTo(-6,-20);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(8,-20);ctx.lineTo(12,-25);ctx.lineTo(11,-18);ctx.closePath();ctx.fill();
+ // Equipped cosmetics are appearance-only and never alter combat stats.
+ if(a.isPlayer&&saved.equippedCosmetic!=="classic") {const cosmetic=cosmeticCatalog.find(c=>c.id===saved.equippedCosmetic);if(cosmetic){ctx.save();ctx.globalAlpha=.8;ctx.strokeStyle=cosmetic.color;ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,cosmetic.id==="shadowCloak"?25:20,0,TAU);ctx.stroke();ctx.fillStyle=cosmetic.color;ctx.font="15px sans-serif";ctx.textAlign="center";ctx.fillText(cosmetic.icon,0,-32);ctx.restore();}}
  // face, facing weapon direction
  ctx.fillStyle="#17222a";ctx.beginPath();ctx.arc(-5,-10,2,0,TAU);ctx.arc(5,-10,2,0,TAU);ctx.fill();ctx.fillStyle="#fff1dc";ctx.beginPath();ctx.arc(0,-5,3,0,TAU);ctx.fill();
  // backpack
@@ -494,7 +602,7 @@ function draw(){
 }
 function frame(now){let dt=Math.min(.033,(now-lastTime)/1000||0);lastTime=now;if(gameState==="playing")update(dt);draw();requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
-renderBook();
+renderBook();renderCosmetics();updateProgressUI();
 if(interruptedMatchRecovery){const notice=document.getElementById("startupNotice");notice.textContent="A previous match was closed or refreshed before it ended. To keep matches fair, its equipped Spirit and Spirits found that match were lost. Your other saved Spirits and Spirit Shards remain.";notice.style.color="#ffbf9c";}
 })();
 </script>
