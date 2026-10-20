@@ -429,11 +429,15 @@ function findOpenPosition(x,y,r){
  return {x,y};
 }
 function collisionMove(a,dx,dy){
- // Test each axis separately. If a tree or building blocks the diagonal route, the actor can still slide along it.
- const nx=clamp(a.x+dx,a.r+8,WORLD.w-a.r-8);
- if(positionClear(nx,a.y,a.r))a.x=nx;
- const ny=clamp(a.y+dy,a.r+8,WORLD.h-a.r-8);
- if(positionClear(a.x,ny,a.r))a.y=ny;
+ // Small collision-aware steps stop actors clipping through corners and make movement smoother.
+ const steps=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/7));
+ const sx=dx/steps,sy=dy/steps;
+ for(let i=0;i<steps;i++){
+  const nx=clamp(a.x+sx,a.r+8,WORLD.w-a.r-8);
+  if(positionClear(nx,a.y,a.r))a.x=nx;
+  const ny=clamp(a.y+sy,a.r+8,WORLD.h-a.r-8);
+  if(positionClear(a.x,ny,a.r))a.y=ny;
+ }
 }
 function burst(x,y,color,n){for(let i=0;i<n;i++)particles.push({x,y,vx:rand(-90,90),vy:rand(-90,90),life:rand(.18,.55),max:.55,color,r:rand(2,4)});}
 function fire(a,angle){
@@ -447,7 +451,10 @@ function fire(a,angle){
  if(a.isPlayer)toastText="";
 }
 function damage(a,amount,source){
- if(!a.alive)return;let reduction=0;
+ if(!a.alive)return;
+ // Remember who attacked this actor so it can defend itself, even during opening peace.
+ if(source&&source!==a&&source.alive){a.lastAttacker=source;a.lastAttackedAt=elapsed;}
+ let reduction=0;
  let sid=a.isPlayer?(equippedSpirit()?.id??-1):a.spirit;let perk=spiritEffect(sid);if(perk)reduction=perk.resistance/100;
  if(source&&!source.isPlayer&&!a.isPlayer)amount*=.32;if(!a.isPlayer&&!a.boss)amount*=.90;amount*=1-reduction;if(source===player)playerDamageDealt+=amount;if(a.shield>0){let take=Math.min(a.shield,amount);a.shield-=take;amount-=take;}a.hp-=amount;burst(a.x,a.y,a.boss?"#ff755f":"#ffdc9b",3);
  if(a.hp<=0){a.hp=0;a.alive=false;burst(a.x,a.y,a.boss?"#ff704d":"#a7e9ff",20);
@@ -472,8 +479,10 @@ function damage(a,amount,source){
 function actorTarget(a){
  if(a.isPlayer)return null;
  let best=null,bd=Infinity;
- // Opening peace period: no bot attacks the player or other bots for 45 seconds.
- // After the grace period, the original natural sight-based combat resumes.
+ // Always fight back against the living actor that most recently damaged this Squinka.
+ const attacker=a.lastAttacker;
+ if(attacker&&attacker.alive&&elapsed-(a.lastAttackedAt??-999)<8)return attacker;
+ // During the opening peace, do not start fights unless attacked first.
  if(elapsed<45)return null;
  const candidates=[player,...bots,...bosses];
  for(const c of candidates){
@@ -508,8 +517,9 @@ function aiUpdate(a,dt){
  }
  a.think-=dt;a.fireCD=Math.max(0,a.fireCD-dt);
  if(a.reload>0){a.reload-=dt;if(a.reload<=0){let g=gunDefs[a.weapon],need=g.mag-a.ammo,take=Math.min(need,a.reserve);a.ammo+=take;a.reserve-=take;syncAmmo(a);}}
- // During the first 45 seconds, bots roam but keep their distance from nearby actors.
- if(elapsed<45){
+ // During the first 45 seconds, bots roam and keep their distance unless defending themselves.
+ const defendingNow=!!(a.lastAttacker&&a.lastAttacker.alive&&elapsed-(a.lastAttackedAt??-999)<8);
+ if(elapsed<45&&!defendingNow){
   a.ai="wander";a.target=null;
   let fx=0,fy=0;
   for(const other of [player,...bots,...bosses]){
@@ -565,6 +575,11 @@ function aiUpdate(a,dt){
  }
 }
 function moveToward(a,x,y,dt,mult=1){let dx=x-a.x,dy=y-a.y,d=Math.hypot(dx,dy)||1;let sp=a.speed;if(!a.isPlayer)sp*=1.22;let sid=a.isPlayer?(equippedSpirit()?.id??-1):a.spirit;let perk=spiritEffect(sid);if(perk)sp*=1+perk.speed/100;collisionMove(a,dx/d*sp*dt*mult,dy/d*sp*dt*mult);a.walk+=dt*8;}
+function segmentDistance(px,py,x1,y1,x2,y2){
+ const dx=x2-x1,dy=y2-y1,len2=dx*dx+dy*dy;
+ const t=len2?clamp(((px-x1)*dx+(py-y1)*dy)/len2,0,1):0;
+ return Math.hypot(px-(x1+t*dx),py-(y1+t*dy));
+}
 function update(dt){
  if(gameState!=="playing")return;elapsed+=dt;if(compassReveal>0)compassReveal=Math.max(0,compassReveal-dt);updateCompassButton();player.fireCD=Math.max(0,player.fireCD-dt);if(player.reload>0){player.reload-=dt;if(player.reload<=0){let g=gunDefs[player.weapon],need=g.mag-player.ammo,take=Math.min(need,player.reserve);player.ammo+=take;player.reserve-=take;syncAmmo(player);}}
  let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0),len=Math.hypot(dx,dy)||1;
@@ -574,11 +589,18 @@ function update(dt){
  player.angle=Math.atan2(mouse.y+camera.y-player.y,mouse.x+camera.x-player.x);
  if(mouse.down)fire(player,player.angle);
  for(const b of bots)aiUpdate(b,dt);for(const b of bosses)if(b.alive)aiUpdate(b,dt);
- for(const p of bullets){p.x+=p.vx*dt;p.y+=p.vy*dt;p.travel+=Math.hypot(p.vx,p.vy)*dt;p.life-=dt;
+ for(const p of bullets){
+  const oldX=p.x,oldY=p.y;p.x+=p.vx*dt;p.y+=p.vy*dt;p.travel+=Math.hypot(p.vx,p.vy)*dt;p.life-=dt;
   if(p.life<=0||p.travel>p.range){p.dead=true;continue}
-  for(const o of objects){if(o.type==="building"&&p.x>o.x&&p.x<o.x+o.w&&p.y>o.y&&p.y<o.y+o.h){p.dead=true;break;}if(o.type==="car"&&Math.abs(p.x-o.x)<o.w/2&&Math.abs(p.y-o.y)<o.h/2){p.dead=true;break;}if((o.type==="tree"||o.type==="rock")&&Math.hypot(p.x-o.x,p.y-o.y)<o.r*.72){p.dead=true;break;}}
-  if(p.dead)continue;let actors=[player,...bots,...bosses];for(const a of actors){if(!a.alive||a===p.owner)continue;if(p.owner.isPlayer&&a.isPlayer)continue;
-  if(Math.hypot(p.x-a.x,p.y-a.y)<a.r+4){damage(a,p.damage,p.owner);p.dead=true;break;}}
+  for(const o of objects){
+   if(o.type==="building"&&p.x>o.x&&p.x<o.x+o.w&&p.y>o.y&&p.y<o.y+o.h){p.dead=true;break;}
+   if(o.type==="car"&&p.x>o.x-o.w/2&&p.x<o.x+o.w/2&&p.y>o.y-o.h/2&&p.y<o.y+o.h/2){p.dead=true;break;}
+   if((o.type==="tree"||o.type==="rock")&&segmentDistance(o.x,o.y,oldX,oldY,p.x,p.y)<o.r*.72){p.dead=true;break;}
+  }
+  if(p.dead)continue;
+  let actors=[player,...bots,...bosses];for(const a of actors){if(!a.alive||a===p.owner)continue;if(p.owner.isPlayer&&a.isPlayer)continue;
+   if(segmentDistance(a.x,a.y,oldX,oldY,p.x,p.y)<a.r+5){damage(a,p.damage,p.owner);p.dead=true;break;}
+  }
  }
  bullets=bullets.filter(p=>!p.dead);
  for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;p.vx*=.96;p.vy*=.96}particles=particles.filter(p=>p.life>0);
@@ -623,7 +645,14 @@ function drawObject(o){
  let x=o.x-camera.x,y=o.y-camera.y;if(x<-150||x>W+150||y<-150||y>H+150)return;
  if(o.type==="tree"){ctx.fillStyle="#355d31";ctx.beginPath();ctx.ellipse(x+5,y+9,o.r*1.1,o.r*.75,0,0,TAU);ctx.fill();ctx.fillStyle="#4b8539";ctx.beginPath();ctx.arc(x,y,o.r,0,TAU);ctx.fill();ctx.fillStyle="#609e43";ctx.beginPath();ctx.arc(x-o.r*.25,y-o.r*.3,o.r*.62,0,TAU);ctx.fill();ctx.fillStyle="#8ac65a";ctx.beginPath();ctx.arc(x-o.r*.25,y-o.r*.42,o.r*.25,0,TAU);ctx.fill();}
  else if(o.type==="rock"){ctx.fillStyle="#56636b";ctx.beginPath();ctx.moveTo(x-o.r,y+o.r*.4);ctx.lineTo(x-o.r*.65,y-o.r*.55);ctx.lineTo(x+o.r*.1,y-o.r);ctx.lineTo(x+o.r,y-o.r*.15);ctx.lineTo(x+o.r*.7,y+o.r*.65);ctx.closePath();ctx.fill();ctx.fillStyle="#829099";ctx.beginPath();ctx.moveTo(x-o.r*.65,y-o.r*.55);ctx.lineTo(x+o.r*.1,y-o.r);ctx.lineTo(x+o.r*.28,y-o.r*.1);ctx.closePath();ctx.fill();}
- else if(o.type==="building"){ctx.fillStyle="#3e4c56";ctx.fillRect(x-4,y-4,o.w,o.h);ctx.fillStyle="#b8b6a6";ctx.fillRect(x,y,o.w,o.h);ctx.fillStyle="#8a928f";ctx.fillRect(x+6,y+6,o.w-12,o.h-12);ctx.fillStyle="#344c5d";for(let wx=x+14;wx<x+o.w-10;wx+=28){ctx.fillRect(wx,y+12,12,12);ctx.fillRect(wx,y+o.h-24,12,12)}ctx.fillStyle="#70573e";ctx.fillRect(x+o.w*.42,y+o.h-22,16,22);ctx.fillStyle="#f6d779";ctx.fillRect(x+o.w*.5-7,y+o.h-3,14,5);ctx.strokeStyle="#e5dfc9";ctx.lineWidth=8;ctx.strokeRect(x+4,y+4,o.w-8,o.h-8);ctx.lineWidth=1;ctx.strokeStyle="#e5dfc9";ctx.strokeRect(x,y,o.w,o.h);}
+ else if(o.type==="building"){
+  // Draw only the walls on top of actors; the interior floor is painted underneath them in draw().
+  ctx.fillStyle="#3e4c56";ctx.fillRect(x-4,y-4,o.w+8,o.h+8);
+  ctx.fillStyle="#b8b6a6";ctx.fillRect(x,y,o.w,8);ctx.fillRect(x,y,8,o.h);ctx.fillRect(x+o.w-8,y,8,o.h);ctx.fillRect(x,y+o.h-8,o.w*.42,8);ctx.fillRect(x+o.w*.58,y+o.h-8,o.w*.42,8);
+  ctx.fillStyle="#344c5d";for(let wx=x+14;wx<x+o.w-10;wx+=28){ctx.fillRect(wx,y+2,12,5);ctx.fillRect(wx,y+o.h-7,12,5)}
+  ctx.fillStyle="#70573e";ctx.fillRect(x+o.w*.42,y+o.h-8,o.w*.16,8);
+  ctx.strokeStyle="#e5dfc9";ctx.lineWidth=2;ctx.strokeRect(x+2,y+2,o.w-4,o.h-4);
+ }
  else if(o.type==="car"){ctx.save();ctx.translate(x,y);ctx.fillStyle="#34434d";ctx.fillRect(-o.w/2+3,-o.h/2+4,o.w,o.h);ctx.fillStyle=pickCarColor(o);ctx.fillRect(-o.w/2,-o.h/2,o.w,o.h);ctx.fillStyle="#8fd5e5";ctx.fillRect(-o.w*.23,-o.h*.35,o.w*.42,o.h*.7);ctx.fillStyle="#293640";ctx.fillRect(-o.w*.45,-o.h*.58,10,5);ctx.fillRect(o.w*.28,-o.h*.58,10,5);ctx.fillRect(-o.w*.45,o.h*.42,10,5);ctx.fillRect(o.w*.28,o.h*.42,10,5);ctx.restore();}
 }
 function pickCarColor(o){return ["#c44e46","#d4b64e","#4e7fc4","#677b75"][Math.floor((o.x+o.y)%4)]}
@@ -677,9 +706,20 @@ function draw(){
  for(const l of loot)drawLoot(l);
  for(const b of bullets){let x=b.x-camera.x,y=b.y-camera.y;ctx.strokeStyle=b.color;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-b.vx*.012,y-b.vy*.012);ctx.stroke();}
  for(const p of particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x-camera.x,p.y-camera.y,p.r,0,TAU);ctx.fill();ctx.globalAlpha=1;}
- // Draw actors before cover so trees/buildings can hide them.
+ // Paint building floors before actors; the doorway at the bottom stays open.
+ for(const o of objects)if(o.type==="building"){
+  const x=o.x-camera.x,y=o.y-camera.y;if(x+o.w<0||x>W||y+o.h<0||y>H)continue;
+  ctx.fillStyle="#b8b6a6";ctx.fillRect(x+8,y+8,o.w-16,o.h-16);
+  ctx.fillStyle="#a3a393";ctx.fillRect(x+13,y+13,o.w-26,o.h-26);
+  ctx.fillStyle="#344c5d";for(let wx=x+18;wx<x+o.w-12;wx+=28)ctx.fillRect(wx,y+14,10,7);
+ }
+ // Draw actors before cover so walls and trees can still cover their edges.
  for(const b of bots)drawActor(b);for(const b of bosses)drawActor(b);if(player)drawActor(player);
  for(const o of objects)drawObject(o);
+ if(player&&gameState==="playing"){
+  const inside=objects.find(o=>o.type==="building"&&player.x>o.x+12&&player.x<o.x+o.w-12&&player.y>o.y+12&&player.y<o.y+o.h-12);
+  if(inside&&!inside.searched){ctx.save();ctx.font="bold 15px system-ui";ctx.textAlign="center";ctx.fillStyle="#07131dcc";ctx.fillRect(W/2-135,H-86,270,34);ctx.fillStyle="#fff3b0";ctx.fillText("Press E to search this building",W/2,H-64);ctx.restore();}
+ }
  if(player&&gameState==="playing"&&compassReveal>0){
   // The compass briefly reveals every living fighter, boss, and loot drop, even through cover.
   const targets=[];
