@@ -20,7 +20,7 @@ button{background:#284765;color:white;border:1px solid #7393b1;border-radius:8px
 #overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#06101ad9;z-index:5;padding:18px}
 .window{width:min(900px,96vw);max-height:92vh;overflow:auto;background:#122033;border:2px solid #496783;border-radius:18px;padding:22px;box-shadow:0 18px 80px #0009}
 h1{margin:0 0 6px;font-size:clamp(28px,5vw,48px);color:var(--gold)}h2{margin:5px 0 12px}p{line-height:1.45;color:#d6e5f2}
-.menuGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:16px 0}
+.menuHero{display:flex;align-items:center;gap:18px;padding:16px;border:1px solid #527b9e;border-radius:16px;background:radial-gradient(circle at 20% 10%,#245b82,#14243b 58%,#10182d);box-shadow:inset 0 0 28px #55cfff22;margin:14px 0}.heroCat{width:118px;height:118px;flex:0 0 118px;border-radius:50%;display:grid;place-items:center;font-size:72px;background:radial-gradient(circle,#fff4b0,#ffb84d 42%,#ed6d4a 70%,#543f9c);box-shadow:0 0 28px #ffd76b99;animation:heroFloat 2.4s ease-in-out infinite alternate}@keyframes heroFloat{from{transform:translateY(0) rotate(-4deg)}to{transform:translateY(-7px) rotate(4deg)}}.menuGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:16px 0}
 .menuCard{border:1px solid #405b76;background:#1a2d42;border-radius:12px;padding:12px}
 #spiritGrid,#cosmeticGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
 .spiritCard{background:#1b3046;border:1px solid #47627c;border-radius:10px;padding:10px;min-height:140px}
@@ -35,7 +35,7 @@ h1{margin:0 0 6px;font-size:clamp(28px,5vw,48px);color:var(--gold)}h2{margin:5px
 <div id="hud">
   <div id="topLeft" class="panel">
     <b>😺 SQUINKA ROYALE</b>
-    <div id="healthText">Health 100 / 200</div><div class="bar"><div id="healthBar" class="fill"></div></div>
+    <div id="healthText">Health 350 / 350</div><div class="bar"><div id="healthBar" class="fill"></div></div>
     <div id="shieldText">Shield 0</div><div class="bar"><div id="shieldBar" class="fill" style="background:#69caff;width:0%"></div></div>
     <div id="weaponText">Squinka Pistol · 12 / 12</div>
     <div id="ammoText" class="muted">Reserve ammo: 60</div>
@@ -60,11 +60,12 @@ h1{margin:0 0 6px;font-size:clamp(28px,5vw,48px);color:var(--gold)}h2{margin:5px
 <div id="overlay">
   <div class="window" id="mainMenu">
     <h1>😺 Squinka Royale</h1>
+    <div class="menuHero"><div class="heroCat" aria-label="Your Squinka preview">😺</div><div><h2 style="color:#8ceaff;font-size:clamp(20px,3vw,30px)">DROP IN. POWER UP. SURVIVE.</h2><p style="margin:4px 0">Your Squinka is ready for the wilds. Explore huge regions, enter buildings, discover rare Spirits, and build your own look.</p><div class="row"><span class="panel">✨ 200 Spirits</span><span class="panel">🎨 28+ Cosmetics</span><span class="panel">🏆 Level 100</span></div></div></div>
     <p>A huge top-down battle royale. Explore, find loot, hide behind cover, collect rare Spirit Shards, defeat bosses, and become the last Squinka standing.</p>
     <div class="menuGrid">
-      <div class="menuCard"><b>🌲 Huge world</b><p class="muted">Forests, rocks, buildings, roads, rare abandoned cars, loot, and hidden places.</p></div>
-      <div class="menuCard"><b>🤖 150 armed bots</b><p class="muted">They loot, fight, heal, use cover, hear gunshots, search, and some use their own Spirit upgrades.</p></div>
-      <div class="menuCard"><b>✨ 200 Spirits</b><p class="muted">No Spirit shop and no buying. Defeat a Spirit-carrying bot or a boss, spend 1 Spirit Shard nearby, then press E to extract its Spirit. If you are eliminated or quit/reload during a match, you lose Spirits found that match and your equipped Spirit.</p></div>
+      <div class="menuCard"><b>🌲 Huge 10,000 × 10,000 world</b><p class="muted">Explore a much bigger map with open roaming space, forests, rocks, buildings, rare cars, scattered loot, and a slower storm.</p></div>
+      <div class="menuCard"><b>🤖 150 armed bots</b><p class="muted">They roam naturally, briefly avoid other bots at the start, use cover, heal, and fight smarter. All actors have much more health.</p></div>
+      <div class="menuCard"><b>✨ 200 Spirits</b><p class="muted">No Spirit shop and no buying. Search buildings from the inside with E, defeat Spirit-carrying bots, or defeat bosses. Spirits are rare; spend 1 Spirit Shard nearby and press E to extract one. If you are eliminated or quit/reload during a match, you lose Spirits found that match and your equipped Spirit.</p></div>
       <div class="menuCard"><b>👑 Bosses</b><p class="muted">Bosses have more health and can reward rare shards or Spirits.</p></div>
     </div>
     <div class="row">
@@ -123,7 +124,7 @@ let W=innerWidth,H=innerHeight,dpr=Math.min(devicePixelRatio||1,2);
 function resize(){W=innerWidth;H=innerHeight;canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+"px";canvas.style.height=H+"px";ctx.setTransform(dpr,0,0,dpr,0,0)}
 addEventListener("resize",resize);resize();
 
-const WORLD={w:5200,h:5200}, TAU=Math.PI*2;
+const WORLD={w:10000,h:10000}, TAU=Math.PI*2;
 const rand=(a,b)=>a+Math.random()*(b-a), pick=a=>a[Math.floor(Math.random()*a.length)], clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const saveKey="squinkaRoyaleSaveV1";
 const MAX_SHARDS=3;
@@ -168,13 +169,13 @@ function spiritEffect(id){
  // Each Spirit gets its own combination of stats; the values are generated from its unique ID.
  // No two Spirits share the same complete set of bonuses.
  if(id<0||id>=spiritNames.length)return null;
- const damage=20+((id*7)%61);                 // +20% to +80% damage
- const fire=10+((id*11)%51);                  // 10% to 60% faster firing
- const resistance=5+((id*3)%41);              // 5% to 45% damage resistance
- const healing=20+((id*5)%81);                // +20% to +100% healing
- const speed=10+((id*13)%41);                 // 10% to 50% movement speed
- const range=15+((id*17)%61);                 // 15% to 75% bullet range
- const loot=10+((id*19)%51);                  // 10% to 60% better loot chance
+ const damage=55+((id*7)%96);                 // +55% to +150% damage
+ const fire=25+((id*11)%61);                  // 25% to 85% faster firing
+ const resistance=18+((id*3)%53);             // 18% to 70% damage resistance
+ const healing=50+((id*5)%101);                // +50% to +150% healing
+ const speed=20+((id*13)%66);                 // 20% to 85% movement speed
+ const range=30+((id*17)%91);                 // 30% to 120% bullet range
+ const loot=15+((id*19)%66);                   // 15% to 80% better loot chance
  return {damage,fire,resistance,healing,speed,range,loot};
 }
 const spirits=spiritNames.map((name,i)=>{
@@ -193,6 +194,13 @@ const cosmeticCatalog=[
  {id:"shadowCloak",name:"Shadow Cloak",cost:750,color:"#9b8cff",icon:"🌑",description:"A dark violet aura."},
  {id:"rainbowHalo",name:"Rainbow Halo",cost:1000,color:"#ff8fd1",icon:"🌈",description:"A dazzling rainbow-style halo."}
 ];
+const extraCosmetics=[
+ ["auroraMantle","Aurora Mantle",450,"🌌","A shifting northern-lights ring.","#70ffd9"],["cometTrail","Comet Trail",500,"☄️","A sparkling comet streak.","#ffd37a"],["moonCrown","Moon Crown",600,"🌙","A crescent moon floats above you.","#c5caff"],["berryBlush","Berry Blush",250,"🍓","A sweet berry-colored glow.","#ff719e"],["stormCloud","Storm Cloud",550,"🌩️","A crackling storm aura.","#8caaff"],
+ ["bubblePop","Bubble Pop",300,"🫧","Tiny bubbles orbit your Squinka.","#89f2ff"],["mossyPaws","Mossy Paws",280,"🌱","A fresh green nature glow.","#8be58c"],["crystalCrown","Crystal Crown",800,"💎","A bright crystal crown.","#8eeaff"],["sunflare","Sunflare",700,"☀️","A blazing sun halo.","#ffb94d"],["voidRing","Void Ring",850,"🕳️","A mysterious dark ring.","#a58bff"],
+ ["candyComet","Candy Comet",400,"🍬","A colorful candy trail.","#ff9fdf"],["leafWhirl","Leaf Whirl",350,"🍃","Leaves spin around your feet.","#9fe870"],["musicNotes","Music Notes",420,"🎵","Musical notes float nearby.","#ff87c8"],["pixelCrown","Pixel Crown",650,"👾","A retro pixel crown.","#a4ffef"],["rubyHeart","Ruby Heart",750,"❤️","A ruby heart aura.","#ff626f"],
+ ["oceanSpiral","Ocean Spiral",480,"🌊","A swirling ocean-blue effect.","#43baff"],["electricArc","Electric Arc",620,"⚡","Electric sparks crackle around you.","#f5f76c"],["paperStars","Paper Stars",330,"🎏","Paper stars drift around you.","#f6d5ff"],["emberPaws","Ember Paws",520,"🔥","Warm embers follow each step.","#ff824d"],["prismWings","Prism Wings",1000,"🪽","Prismatic wings shimmer behind you.","#e4aaff"]
+];
+for(const [id,name,cost,icon,description,color] of extraCosmetics)cosmeticCatalog.push({id,name,cost,icon,description,color});
 const CODE_REWARDS={
  "SQUINKAWEBMEGAADMIN":{type:"allSpirits",label:"Unlock all 200 Spirits"},
  "CATPOWER":{type:"xp",amount:2500,label:"2,500 XP"},
@@ -298,22 +306,22 @@ function matchRewards(won){
  const oldLevel=saved.level,ups=addXP(xp);saved.tokens+=tokens;persist();updateProgressUI();
  return {xp,tokens,ups,oldLevel,level:saved.level};
 }
-function newActor(x,y,isPlayer=false,boss=false){return {x,y,r:boss?25:13,hp:boss?650:100,maxHp:boss?650:100,shield:0,angle:0,isPlayer,boss,alive:true,speed:boss?90:rand(95,125),weapon:isPlayer?0:Math.floor(rand(0,10)),ammo:0,reserve:0,reload:0,fireCD:rand(0,.7),meds:boss?0:Math.random()<.35?1:0,ai:"loot",target:null,lastSeen:null,lastHeard:null,alert:0,think:0,strafe:Math.random()<.5?-1:1,seed:Math.random()*10,spirit:Math.random()<.12?pick(spirits.filter(sp=>!sp.bossOnly)).id:-1,walk:Math.random()*10,name:isPlayer?"You":"Squinka",lootValue:0,botEngageAt:boss?rand(18,48):rand(28,88)};}
+function newActor(x,y,isPlayer=false,boss=false){const maxHp=isPlayer?350:boss?1200:420;return {x,y,r:boss?25:13,hp:maxHp,maxHp,shield:isPlayer?75:boss?100:Math.floor(rand(45,101)),angle:0,isPlayer,boss,alive:true,speed:boss?90:rand(100,132),weapon:isPlayer?0:Math.floor(rand(0,10)),ammo:0,reserve:0,reload:0,fireCD:rand(0,.7),meds:boss?1:(Math.random()<.72?2:Math.random()<.45?1:0),ai:"loot",target:null,lastSeen:null,lastHeard:null,alert:0,think:0,strafe:Math.random()<.5?-1:1,seed:Math.random()*10,spirit:Math.random()<.12?pick(spirits.filter(sp=>!sp.bossOnly)).id:-1,walk:Math.random()*10,name:isPlayer?"You":"Squinka",lootValue:0,moveTarget:null,stuckTimer:0,lastMoveX:x,lastMoveY:y,unstuckCooldown:0};}
 function startMatch(){
  matchSpiritIds=new Set();matchActive=true;
  compassNextUse=120;compassReveal=0;updateCompassButton();
  worldSeed=Math.random()*999999;elapsed=0;kills=0;playerDamageDealt=0;bossesDefeated=0;nextBoss=55;bots=[];objects=[];bullets=[];particles=[];loot=[];bosses=[];
- player=newActor(WORLD.w/2,WORLD.h/2,true);player.hp=100;player.weapon=0;player.ammo=gunDefs[0].mag;player.reserve=60;player.meds=1;player.inventory=[0,-1,-1];player.shield=0;
- zone={x:WORLD.w/2,y:WORLD.h/2,r:2450,startR:2450,shrinkDelay:75,shrinkSpeed:7};
+ player=newActor(WORLD.w/2,WORLD.h/2,true);player.hp=player.maxHp;player.shield=75;player.weapon=0;player.ammo=gunDefs[0].mag;player.reserve=60;player.meds=1;player.inventory=[0,-1,-1];
+ zone={x:WORLD.w/2,y:WORLD.h/2,r:7100,startR:7100,shrinkDelay:100,shrinkSpeed:9};
  // Scattered cover objects, with buildings and cars deliberately less common.
- for(let i=0;i<390;i++){let x=rand(80,WORLD.w-80),y=rand(80,WORLD.h-80);let type=Math.random()<.56?"tree":Math.random()<.72?"rock":"tree";objects.push({x,y,type,r:type==="tree"?rand(18,29):rand(16,27),w:0,h:0});}
- for(let i=0;i<55;i++){let x=rand(100,WORLD.w-180),y=rand(100,WORLD.h-160);objects.push({x,y,type:"building",w:rand(70,125),h:rand(60,110),r:0});}
- for(let i=0;i<24;i++){let x=rand(100,WORLD.w-100),y=rand(100,WORLD.h-100);objects.push({x,y,type:"car",w:52,h:28,r:0});}
+ for(let i=0;i<650;i++){let x,y,tries=0;do{x=rand(80,WORLD.w-80);y=rand(80,WORLD.h-80);tries++;}while(Math.hypot(x-player.x,y-player.y)<150&&tries<30);let type=Math.random()<.56?"tree":Math.random()<.72?"rock":"tree";objects.push({x,y,type,r:type==="tree"?rand(18,29):rand(16,27),w:0,h:0});}
+ for(let i=0;i<82;i++){let x,y,tries=0;do{x=rand(100,WORLD.w-180);y=rand(100,WORLD.h-160);tries++;}while(Math.hypot(x-player.x,y-player.y)<240&&tries<30);objects.push({x,y,type:"building",w:rand(70,125),h:rand(60,110),r:0});}
+ for(let i=0;i<36;i++){let x=rand(100,WORLD.w-100),y=rand(100,WORLD.h-100);objects.push({x,y,type:"car",w:52,h:28,r:0});}
  // A few winding roads are decorative; they help orient players.
- for(let i=0;i<260;i++){let x=rand(30,WORLD.w-30),y=rand(30,WORLD.h-30);if(Math.random()<.52)loot.push(makeLoot(x,y));}
- for(let i=0;i<150;i++){let x,y,tries=0;do{x=rand(70,WORLD.w-70);y=rand(70,WORLD.h-70);tries++}while(Math.hypot(x-player.x,y-player.y)<400&&tries<30);let b=newActor(x,y);b.name=pick(["Mittens","Mochi","Paws","Noodle","Pebble","Tango","Clover","Biscuit","Miso","Waffles","Pixel","Pickles"]);b.weapon=Math.floor(rand(0,10));b.ammo=gunDefs[b.weapon].mag;b.reserve=gunDefs[b.weapon].mag*2;b.ai="loot";bots.push(b);}
+ for(let i=0;i<520;i++){let x=rand(30,WORLD.w-30),y=rand(30,WORLD.h-30);if(Math.random()<.52)loot.push(makeLoot(x,y));}
+ for(let i=0;i<150;i++){let pos=findOpenPosition(rand(70,WORLD.w-70),rand(70,WORLD.h-70),13);let x=pos.x,y=pos.y,tries=0;while(Math.hypot(x-player.x,y-player.y)<650&&tries<20){pos=findOpenPosition(rand(70,WORLD.w-70),rand(70,WORLD.h-70),13);x=pos.x;y=pos.y;tries++;}let b=newActor(x,y);b.name=pick(["Mittens","Mochi","Paws","Noodle","Pebble","Tango","Clover","Biscuit","Miso","Waffles","Pixel","Pickles"]);b.weapon=Math.floor(rand(0,10));b.ammo=gunDefs[b.weapon].mag;b.reserve=gunDefs[b.weapon].mag*3;b.ai="loot";bots.push(b);}
  // Bosses are rare and roam the map.
- for(let i=0;i<3;i++){let b=newActor(rand(350,WORLD.w-350),rand(350,WORLD.h-350),false,true);b.name=["Shard Guardian","Rift Beast","Elder Squinka"][i];b.weapon=9;b.ammo=999;b.speed=75;b.hp=b.maxHp=650+i*150;b.bossIndex=i;bosses.push(b);}
+ for(let i=0;i<3;i++){let pos=findOpenPosition(rand(350,WORLD.w-350),rand(350,WORLD.h-350),25);let b=newActor(pos.x,pos.y,false,true);b.name=["Shard Guardian","Rift Beast","Elder Squinka"][i];b.weapon=9;b.ammo=999;b.speed=75;b.hp=b.maxHp=750+i*180;b.bossIndex=i;bosses.push(b);}
  gameState="playing";persist();showOnly(null);lastTime=performance.now();toast("Find loot. Stay alert. The Spirits are rare!");
 }
 function updateCompassButton(){
@@ -343,7 +351,20 @@ function syncAmmo(a){a.ammoByGun=a.ammoByGun||{};a.reserveByGun=a.reserveByGun||
 function reload(a){if(!a||!a.alive||a.reload>0)return;let g=gunDefs[a.weapon];if(a.ammo>=g.mag||a.reserve<=0)return;a.reload=g.reload;if(a.isPlayer)toast("Reloading…");}
 function heal(a){if(!a||!a.alive||a.meds<=0||a.hp>=a.maxHp)return;a.meds--;let amount=45;let sid=a.isPlayer?(equippedSpirit()?.id??-1):a.spirit;let perk=spiritEffect(sid);if(perk)amount*=1+perk.healing/100;a.hp=Math.min(a.maxHp,a.hp+amount);burst(a.x,a.y,"#67ff9b",14);if(a.isPlayer)toast("Med kit used!");}
 function pickup(){
- if(gameState!=="playing")return;let near=null,bd=65;for(const l of loot){let d=Math.hypot(l.x-player.x,l.y-player.y);if(d<bd){bd=d;near=l;}}
+ if(gameState!=="playing")return;
+ // Search a building only while standing inside it. Each building can be searched once per match.
+ const home=objects.find(o=>o.type==="building"&&player.x>o.x+12&&player.x<o.x+o.w-12&&player.y>o.y+12&&player.y<o.y+o.h-12);
+ if(home&&!home.searched){
+  home.searched=true;let made=0;
+  const rx=home.x+home.w/2, ry=home.y+home.h/2;
+  loot.push({x:rx+rand(-15,15),y:ry+rand(-15,15),type:Math.random()<.55?"ammo":Math.random()<.65?"medkit":"gun",gun:Math.floor(rand(0,10)),amount:Math.floor(rand(20,60)),spin:0});made++;
+  if(Math.random()<.30)loot.push({x:rx+rand(-22,22),y:ry+rand(-22,22),type:"shard",amount:1,spin:0});
+  const spiritPool=spirits.filter(sp=>!saved.unlocked.includes(sp.id)&&!matchSpiritIds.has(sp.id)&&!sp.bossOnly);
+  if(spiritPool.length&&Math.random()<.16){const sp=pick(spiritPool);loot.push({x:rx+rand(-20,20),y:ry+rand(-20,20),type:"botSpirit",spiritId:sp.id,bossOnly:false,amount:1,spin:0});toast("🏚️ You searched the building! Rare Spirit found inside — spend a shard and press E to extract it.");}
+  else toast("🏚️ Building searched! Loot is inside. Press E near it to pick it up.");
+  return;
+ }
+ let near=null,bd=65;for(const l of loot){let d=Math.hypot(l.x-player.x,l.y-player.y);if(d<bd){bd=d;near=l;}}
  if(!near){toast("No loot close enough");return;}
  if(near.type==="ammo"){player.reserve+=near.amount;toast("Picked up "+near.amount+" ammo")}
  else if(near.type==="medkit"){player.meds++;toast("Picked up a med kit")}
@@ -378,11 +399,41 @@ function togglePause(){if(gameState==="playing"){gameState="paused";showOnly(pau
 function lineBlocked(x1,y1,x2,y2){
  const steps=Math.ceil(Math.hypot(x2-x1,y2-y1)/18);for(let i=1;i<steps;i++){let t=i/steps,x=x1+(x2-x1)*t,y=y1+(y2-y1)*t;for(const o of objects){if(o.type==="building"){if(x>o.x&&x<o.x+o.w&&y>o.y&&y<o.y+o.h)return true;}else if(o.type==="car"){if(x>o.x-o.w/2&&x<o.x+o.w/2&&y>o.y-o.h/2&&y<o.y+o.h/2)return true;}else if(Math.hypot(x-o.x,y-o.y)<o.r*.72)return true;}}return false;
 }
+function positionClear(x,y,r){
+ if(x<r+8||y<r+8||x>WORLD.w-r-8||y>WORLD.h-r-8)return false;
+ for(const o of objects){
+  if(o.type==="building"){
+   const left=o.x, right=o.x+o.w, top=o.y, bottom=o.y+o.h, wall=9, doorHalf=17;
+   const insideX=x+r>left+wall&&x-r<right-wall, insideY=y+r>top+wall&&y-r<bottom-wall;
+   if(insideX&&insideY)continue; // interior is walkable
+   const doorGap=Math.abs(x-(left+o.w/2))<doorHalf&&y-r<bottom+5&&y+r>bottom-wall-2;
+   if(doorGap)continue;
+   const hitLeft=x+r>left-wall&&x-r<left+wall&&y+r>top&&y-r<bottom;
+   const hitRight=x+r>right-wall&&x-r<right+wall&&y+r>top&&y-r<bottom;
+   const hitTop=x+r>left&&x-r<right&&y+r>top-wall&&y-r<top+wall;
+   const hitBottom=x+r>left&&x-r<right&&y+r>bottom-wall&&y-r<bottom+wall;
+   if(hitLeft||hitRight||hitTop||hitBottom)return false;
+  }else if(o.type==="car"){
+   if(x+r>o.x-o.w/2&&x-r<o.x+o.w/2&&y+r>o.y-o.h/2&&y-r<o.y+o.h/2)return false;
+  }else{
+   const limit=o.r*.72+r,dx=x-o.x,dy=y-o.y;
+   if(Math.abs(dx)<limit&&Math.abs(dy)<limit&&dx*dx+dy*dy<limit*limit)return false;
+  }
+ }
+ return true;
+}
+function findOpenPosition(x,y,r){
+ x=clamp(x,r+12,WORLD.w-r-12);y=clamp(y,r+12,WORLD.h-r-12);
+ if(positionClear(x,y,r))return {x,y};
+ for(let i=0;i<28;i++){const angle=i*2.399963229728653,radius=35+Math.floor(i/8)*35;const nx=clamp(x+Math.cos(angle)*radius,r+12,WORLD.w-r-12),ny=clamp(y+Math.sin(angle)*radius,r+12,WORLD.h-r-12);if(positionClear(nx,ny,r))return {x:nx,y:ny};}
+ return {x,y};
+}
 function collisionMove(a,dx,dy){
- let nx=clamp(a.x+dx,20,WORLD.w-20),ny=clamp(a.y+dy,20,WORLD.h-20);
- // Solid building/car collision, and trunks/rocks block bodies.
- for(const o of objects){if(o.type==="building"){if(nx>a.x&&nx>o.x-a.r&&nx<o.x+o.w+a.r&&ny>o.y-a.r&&ny<o.y+o.h+a.r){nx=a.x;ny=a.y;}}else if(o.type==="car"){if(Math.abs(nx-o.x)<o.w/2+a.r&&Math.abs(ny-o.y)<o.h/2+a.r){nx=a.x;ny=a.y;}}else{let d=Math.hypot(nx-o.x,ny-o.y),min=o.r*.72+a.r;if(d<min){let ang=Math.atan2(ny-o.y,nx-o.x);nx=o.x+Math.cos(ang)*min;ny=o.y+Math.sin(ang)*min;}}}
- a.x=nx;a.y=ny;
+ // Test each axis separately. If a tree or building blocks the diagonal route, the actor can still slide along it.
+ const nx=clamp(a.x+dx,a.r+8,WORLD.w-a.r-8);
+ if(positionClear(nx,a.y,a.r))a.x=nx;
+ const ny=clamp(a.y+dy,a.r+8,WORLD.h-a.r-8);
+ if(positionClear(a.x,ny,a.r))a.y=ny;
 }
 function burst(x,y,color,n){for(let i=0;i<n;i++)particles.push({x,y,vx:rand(-90,90),vy:rand(-90,90),life:rand(.18,.55),max:.55,color,r:rand(2,4)});}
 function fire(a,angle){
@@ -398,7 +449,7 @@ function fire(a,angle){
 function damage(a,amount,source){
  if(!a.alive)return;let reduction=0;
  let sid=a.isPlayer?(equippedSpirit()?.id??-1):a.spirit;let perk=spiritEffect(sid);if(perk)reduction=perk.resistance/100;
- amount*=1-reduction;if(source===player)playerDamageDealt+=amount;if(a.shield>0){let take=Math.min(a.shield,amount);a.shield-=take;amount-=take;}a.hp-=amount;burst(a.x,a.y,a.boss?"#ff755f":"#ffdc9b",3);
+ if(source&&!source.isPlayer&&!a.isPlayer)amount*=.32;if(!a.isPlayer&&!a.boss)amount*=.90;amount*=1-reduction;if(source===player)playerDamageDealt+=amount;if(a.shield>0){let take=Math.min(a.shield,amount);a.shield-=take;amount-=take;}a.hp-=amount;burst(a.x,a.y,a.boss?"#ff755f":"#ffdc9b",3);
  if(a.hp<=0){a.hp=0;a.alive=false;burst(a.x,a.y,a.boss?"#ff704d":"#a7e9ff",20);
   if(a.boss){if(source===player)bossesDefeated++;let shardCount=2+Math.floor(Math.random()*2);for(let i=0;i<shardCount&&saved.shards<MAX_SHARDS;i++){loot.push({x:a.x+rand(-28,28),y:a.y+rand(-28,28),type:"shard",amount:1,spin:0});}const pool=spirits.filter(sp=>sp.bossOnly&&!saved.unlocked.includes(sp.id));if(pool.length){const sp=pick(pool);loot.push({x:a.x+rand(-32,32),y:a.y+rand(-32,32),type:"botSpirit",spiritId:sp.id,bossOnly:true,amount:1,spin:0});toast(a.name+" defeated! A rare Boss Spirit dropped — use 1 shard and press E to extract it.");}else toast(a.name+" defeated! Spirit Shards found!");}
   else{loot.push(makeLoot(a.x+rand(-20,20),a.y+rand(-20,20)));if(Math.random()<.22)loot.push({x:a.x+rand(-20,20),y:a.y+rand(-20,20),type:"shard",amount:1,spin:0});if(a.spirit>=0&&!saved.unlocked.includes(a.spirit)){loot.push({x:a.x+rand(-22,22),y:a.y+rand(-22,22),type:"botSpirit",spiritId:a.spirit,bossOnly:!!a.spiritBossOnly,amount:1,spin:0});}}
@@ -418,43 +469,100 @@ function damage(a,amount,source){
   }
  }
 }
-function activeBotSkirmishers(){return [...bots,...bosses].filter(b=>b.alive&&b.ai==="fight"&&b.target&&!b.target.isPlayer).length;}
 function actorTarget(a){
- if(a.isPlayer)return null;let best=null,bd=Infinity;
- // Bots don't start fighting one another immediately. Their individual truce timers stagger skirmishes.
- const candidates=[player,...bots,...bosses];for(const c of candidates){if(c===a||!c.alive||c===player&&!player.alive)continue;
-  if(!c.isPlayer){if(elapsed<Math.max(a.botEngageAt||45,c.botEngageAt||45))continue;const active=activeBotSkirmishers();if(active>=12&&a.target!==c)continue;}
-  let d=dist(a,c);const sightRange=c===player?(a.boss?1120:900):(a.boss?820:650);if(d>sightRange||d>bd)continue;if(lineBlocked(a.x,a.y,c.x,c.y))continue;
-  if(c===player){const recentlySeen=a.lastSeen&&elapsed-a.lastSeen.time<3.8;const notice=clamp(1-d/1080,.18,.98);const chance=recentlySeen ? 0.94 : clamp(.24+notice*.70,.24,.92);if(Math.random()>chance)continue;}
+ if(a.isPlayer)return null;
+ let best=null,bd=Infinity;
+ // Opening peace period: no bot attacks the player or other bots for 45 seconds.
+ // After the grace period, the original natural sight-based combat resumes.
+ if(elapsed<45)return null;
+ const candidates=[player,...bots,...bosses];
+ for(const c of candidates){
+  if(c===a||!c.alive||(c===player&&!player.alive))continue;
+  const d=dist(a,c);if(d>bd)continue;
+  const sightRange=c===player?(a.boss?1120:900):(a.boss?850:650);
+  if(d>sightRange||lineBlocked(a.x,a.y,c.x,c.y))continue;
+  if(c===player){
+   const recentlySeen=a.lastSeen&&elapsed-a.lastSeen.time<3.8;
+   const notice=clamp(1-d/1180,.18,.98);
+   const chance=recentlySeen?.94:clamp(.22+notice*.66,.22,.90);
+   if(Math.random()>chance)continue;
+  }
   best=c;bd=d;
  }
  return best;
 }
 function aiUpdate(a,dt){
- if(!a.alive)return;a.think-=dt;a.fireCD=Math.max(0,a.fireCD-dt);if(a.reload>0){a.reload-=dt;if(a.reload<=0){let g=gunDefs[a.weapon],need=g.mag-a.ammo,take=Math.min(need,a.reserve);a.ammo+=take;a.reserve-=take;syncAmmo(a);}}
- if(a.think<=0){a.think=rand(.13,.30);let t=actorTarget(a);if(t){a.target=t;a.lastSeen={x:t.x,y:t.y,time:elapsed};a.ai="fight";a.alert=Math.min(1,a.alert+.25);}else if(a.ai==="fight"&&(!a.lastSeen||elapsed-a.lastSeen.time>7)){a.ai="investigate";a.target=null;}else if(a.ai==="fight"&&a.lastSeen&&elapsed-a.lastSeen.time>2){a.ai="investigate";a.target=null;}
-  if(a.ai==="loot"&&Math.random()<.25)a.ai="wander";
-  if(a.ai==="wander"||a.ai==="loot"){a.target=null;if(!a.moveTarget||Math.random()<.25){const angle=rand(0,TAU),radius=Math.sqrt(Math.random())*Math.max(120,zone.r*.54);a.moveTarget={x:clamp(zone.x+Math.cos(angle)*radius,60,WORLD.w-60),y:clamp(zone.y+Math.sin(angle)*radius,60,WORLD.h-60)};}}
-  if(a.ai==="investigate"&&a.lastHeard&&elapsed-a.lastHeard.time>13){a.ai="wander";a.lastHeard=null;}
+ if(!a.alive)return;
+ a.unstuckCooldown=Math.max(0,(a.unstuckCooldown||0)-dt);
+ const moved=Math.hypot(a.x-(a.lastMoveX??a.x),a.y-(a.lastMoveY??a.y));
+ if(moved<1.5)a.stuckTimer=(a.stuckTimer||0)+dt;else a.stuckTimer=0;
+ a.lastMoveX=a.x;a.lastMoveY=a.y;
+ if(a.stuckTimer>1.35&&a.unstuckCooldown<=0){
+  // If repeated movement attempts fail, nudge the actor to the nearest free patch of ground.
+  let freed=null;
+  for(let i=0;i<12&&!freed;i++){const ang=rand(0,TAU),r=rand(48,135),x=clamp(a.x+Math.cos(ang)*r,a.r+10,WORLD.w-a.r-10),y=clamp(a.y+Math.sin(ang)*r,a.r+10,WORLD.h-a.r-10);if(positionClear(x,y,a.r))freed={x,y};}
+  if(freed){a.x=freed.x;a.y=freed.y;}
+  a.stuckTimer=0;a.unstuckCooldown=2.2;a.moveTarget=null;
+  if(a.ai!=="fight"&&a.ai!=="investigate")a.ai="wander";
+  a.strafe=Math.random()<.5?-1:1;
  }
- // Keep bots and bosses away from the outer ring. They head inward before the storm reaches them.
+ a.think-=dt;a.fireCD=Math.max(0,a.fireCD-dt);
+ if(a.reload>0){a.reload-=dt;if(a.reload<=0){let g=gunDefs[a.weapon],need=g.mag-a.ammo,take=Math.min(need,a.reserve);a.ammo+=take;a.reserve-=take;syncAmmo(a);}}
+ // During the first 45 seconds, bots roam but keep their distance from nearby actors.
+ if(elapsed<45){
+  a.ai="wander";a.target=null;
+  let fx=0,fy=0;
+  for(const other of [player,...bots,...bosses]){
+   if(other===a||!other.alive)continue;
+   const dd=dist(a,other);
+   const minGap=other===player?420:300;
+   if(dd<minGap&&dd>0){fx+=(a.x-other.x)/dd*(minGap-dd);fy+=(a.y-other.y)/dd*(minGap-dd);}
+  }
+  if(Math.hypot(fx,fy)>0.5){
+   const fl=Math.hypot(fx,fy);a.angle=Math.atan2(fy,fx);
+   collisionMove(a,fx/fl*a.speed*dt*1.15,fy/fl*a.speed*dt*1.15);a.walk+=dt*8;
+   return;
+  }
+ }
+ if(a.think<=0){
+  a.think=rand(.16,.30);
+  const t=actorTarget(a);
+  if(t){a.target=t;a.lastSeen={x:t.x,y:t.y,time:elapsed};a.ai="fight";a.alert=Math.min(1,a.alert+.25);}
+  else if(a.ai==="fight"&&(!a.lastSeen||elapsed-a.lastSeen.time>2.5)){a.ai=a.lastHeard?"investigate":"wander";a.target=null;}
+  else if(a.ai==="fight"&&a.lastSeen&&elapsed-a.lastSeen.time>1.4){a.ai="investigate";a.target=null;}
+  if(a.ai==="loot"&&Math.random()<.18)a.ai="wander";
+  if(a.ai==="wander"||a.ai==="loot"){
+   a.target=null;
+   const td=a.moveTarget?Math.hypot(a.moveTarget.x-a.x,a.moveTarget.y-a.y):Infinity;
+   if(!a.moveTarget||td<90||Math.random()<.012){
+    const angle=rand(0,TAU),radius=rand(500,1700);
+    a.moveTarget={x:clamp(a.x+Math.cos(angle)*radius,80,WORLD.w-80),y:clamp(a.y+Math.sin(angle)*radius,80,WORLD.h-80)};
+   }
+  }
+  if(a.ai==="investigate"&&a.lastHeard&&elapsed-a.lastHeard.time>16){a.ai="wander";a.lastHeard=null;a.moveTarget=null;}
+ }
+ // Only steer toward safety when the storm is active and the actor reaches its edge.
+ // Before that, bots are free to explore all corners of the enlarged map.
  const centerDistance=Math.hypot(a.x-zone.x,a.y-zone.y);
- if(centerDistance>Math.max(180,zone.r*.68)){
-  a.ai="returning";a.target=null;moveToward(a,zone.x,zone.y,dt,1.55);return;
+ if(elapsed>zone.shrinkDelay&&centerDistance>zone.r-150){
+  a.ai="returning";a.target=null;a.moveTarget=null;
+  const safeRadius=Math.max(0,zone.r-480),scale=centerDistance>0?safeRadius/centerDistance:0;
+  moveToward(a,zone.x+(a.x-zone.x)*scale,zone.y+(a.y-zone.y)*scale,dt,1.45);return;
  }
  if(a.ai==="returning"){a.ai="wander";a.target=null;a.moveTarget=null;}
  if(a.ai==="fight"&&a.target&&a.target.alive){
   let t=a.target,d=dist(a,t),ang=Math.atan2(t.y-a.y,t.x-a.x);a.angle=ang;
-  if(a.isPlayer===false&&d<650&&!lineBlocked(a.x,a.y,t.x,t.y)){if(d>235)moveToward(a,t.x,t.y,dt,1);else if(d<135)moveToward(a,a.x-Math.cos(ang)*120,a.y-Math.sin(ang)*120,dt,1);else{let sx=-Math.sin(ang)*a.strafe,sy=Math.cos(ang)*a.strafe;collisionMove(a,sx*a.speed*dt*.65,sy*a.speed*dt*.65);}}
-  if(d<gunDefs[a.weapon].range&&!lineBlocked(a.x,a.y,t.x,t.y)){if(a.ammo<=0)reload(a);else if(d<gunDefs[a.weapon].range*.96)fire(a,ang+rand(-.018,.018));}
-  if(a.hp<62&&a.meds>0&&Math.random()<.16)heal(a);
+  if(d>235)moveToward(a,t.x,t.y,dt,1);
+  else if(d<135)moveToward(a,a.x-Math.cos(ang)*120,a.y-Math.sin(ang)*120,dt,1);
+  else{let sx=-Math.sin(ang)*a.strafe,sy=Math.cos(ang)*a.strafe;collisionMove(a,sx*a.speed*dt*.75,sy*a.speed*dt*.75);}
+  if(d<gunDefs[a.weapon].range&&!lineBlocked(a.x,a.y,t.x,t.y)){if(a.ammo<=0)reload(a);else if(d<gunDefs[a.weapon].range*.96)fire(a,ang+rand(-.035,.035));}
+  if(a.hp<a.maxHp*.62&&a.meds>0&&Math.random()<.22)heal(a);
  }else{
   let target=a.ai==="investigate"?(a.lastHeard||a.lastSeen):a.moveTarget;
-  if(target){let d=Math.hypot(target.x-a.x,target.y-a.y);if(d>18){let ang=Math.atan2(target.y-a.y,target.x-a.x);a.angle=ang;moveToward(a,target.x,target.y,dt,1);}}
-  // Opportunistic loot: bots can pick up supplies and upgrade weapons.
-  if(Math.random()<.008){let nearest=null,nd=85;for(const l of loot){if(l.type==="botSpirit"&&a.spirit>=0)continue;let d=Math.hypot(l.x-a.x,l.y-a.y);if(d<nd){nd=d;nearest=l;}}if(nearest){if(nearest.type==="medkit")a.meds++;if(nearest.type==="ammo")a.reserve+=nearest.amount;if(nearest.type==="gun"&&gunDefs[nearest.gun].damage>gunDefs[a.weapon].damage){storeGun(a,nearest.gun)}if(nearest.type==="shard"&&Math.random()<.3){a.shards=Math.min(MAX_SHARDS,(a.shards||0)+1)}if(nearest.type==="botSpirit"&&a.spirit<0){a.spirit=nearest.spiritId;a.spiritBossOnly=!!nearest.bossOnly}loot.splice(loot.indexOf(nearest),1);}}
+  if(target){let d=Math.hypot(target.x-a.x,target.y-a.y);if(d>24){let ang=Math.atan2(target.y-a.y,target.x-a.x);a.angle=ang;moveToward(a,target.x,target.y,dt,1);}}
+  // Bots scavenge supplies and can improve their weapons during their travels.
+  if(Math.random()<.008){let nearest=null,nd=95;for(const l of loot){if(l.type==="botSpirit"&&a.spirit>=0)continue;let d=Math.hypot(l.x-a.x,l.y-a.y);if(d<nd){nd=d;nearest=l;}}if(nearest){if(nearest.type==="medkit")a.meds++;if(nearest.type==="ammo")a.reserve+=nearest.amount;if(nearest.type==="gun"&&gunDefs[nearest.gun].damage>gunDefs[a.weapon].damage)storeGun(a,nearest.gun);if(nearest.type==="shard"&&Math.random()<.3)a.shards=Math.min(MAX_SHARDS,(a.shards||0)+1);if(nearest.type==="botSpirit"&&a.spirit<0){a.spirit=nearest.spiritId;a.spiritBossOnly=!!nearest.bossOnly;}loot.splice(loot.indexOf(nearest),1);}}
  }
- // Storm damage is handled centrally in update(); AI has already been pushed toward the center above.
 }
 function moveToward(a,x,y,dt,mult=1){let dx=x-a.x,dy=y-a.y,d=Math.hypot(dx,dy)||1;let sp=a.speed;if(!a.isPlayer)sp*=1.22;let sid=a.isPlayer?(equippedSpirit()?.id??-1):a.spirit;let perk=spiritEffect(sid);if(perk)sp*=1+perk.speed/100;collisionMove(a,dx/d*sp*dt*mult,dy/d*sp*dt*mult);a.walk+=dt*8;}
 function update(dt){
@@ -470,8 +578,6 @@ function update(dt){
   if(p.life<=0||p.travel>p.range){p.dead=true;continue}
   for(const o of objects){if(o.type==="building"&&p.x>o.x&&p.x<o.x+o.w&&p.y>o.y&&p.y<o.y+o.h){p.dead=true;break;}if(o.type==="car"&&Math.abs(p.x-o.x)<o.w/2&&Math.abs(p.y-o.y)<o.h/2){p.dead=true;break;}if((o.type==="tree"||o.type==="rock")&&Math.hypot(p.x-o.x,p.y-o.y)<o.r*.72){p.dead=true;break;}}
   if(p.dead)continue;let actors=[player,...bots,...bosses];for(const a of actors){if(!a.alive||a===p.owner)continue;if(p.owner.isPlayer&&a.isPlayer)continue;
-  // Before the bot truce expires, enemy bullets cannot damage other bots. Afterward they only hit their chosen target, keeping fights limited.
-  if(!p.owner.isPlayer&&!a.isPlayer){if(elapsed<Math.max(p.owner.botEngageAt||0,a.botEngageAt||0)||a!==p.owner.target)continue;}
   if(Math.hypot(p.x-a.x,p.y-a.y)<a.r+4){damage(a,p.damage,p.owner);p.dead=true;break;}}
  }
  bullets=bullets.filter(p=>!p.dead);
@@ -481,7 +587,7 @@ function update(dt){
  // The storm damages every living entity outside the circular safe zone, including the player.
  // It gets harsher as the circle becomes smaller. Bots and bosses steer back toward the center.
  if(elapsed>zone.shrinkDelay){
-  const stormDps=zone.r<800?18:(zone.r<1500?11:6);
+  const stormDps=zone.r<800?12:(zone.r<1500?7:4);
   for(const a of [player,...bots,...bosses]){
    if(a&&a.alive&&Math.hypot(a.x-zone.x,a.y-zone.y)>zone.r-a.r*.35){
     damage(a,stormDps*dt,null);
@@ -517,7 +623,7 @@ function drawObject(o){
  let x=o.x-camera.x,y=o.y-camera.y;if(x<-150||x>W+150||y<-150||y>H+150)return;
  if(o.type==="tree"){ctx.fillStyle="#355d31";ctx.beginPath();ctx.ellipse(x+5,y+9,o.r*1.1,o.r*.75,0,0,TAU);ctx.fill();ctx.fillStyle="#4b8539";ctx.beginPath();ctx.arc(x,y,o.r,0,TAU);ctx.fill();ctx.fillStyle="#609e43";ctx.beginPath();ctx.arc(x-o.r*.25,y-o.r*.3,o.r*.62,0,TAU);ctx.fill();ctx.fillStyle="#8ac65a";ctx.beginPath();ctx.arc(x-o.r*.25,y-o.r*.42,o.r*.25,0,TAU);ctx.fill();}
  else if(o.type==="rock"){ctx.fillStyle="#56636b";ctx.beginPath();ctx.moveTo(x-o.r,y+o.r*.4);ctx.lineTo(x-o.r*.65,y-o.r*.55);ctx.lineTo(x+o.r*.1,y-o.r);ctx.lineTo(x+o.r,y-o.r*.15);ctx.lineTo(x+o.r*.7,y+o.r*.65);ctx.closePath();ctx.fill();ctx.fillStyle="#829099";ctx.beginPath();ctx.moveTo(x-o.r*.65,y-o.r*.55);ctx.lineTo(x+o.r*.1,y-o.r);ctx.lineTo(x+o.r*.28,y-o.r*.1);ctx.closePath();ctx.fill();}
- else if(o.type==="building"){ctx.fillStyle="#3e4c56";ctx.fillRect(x-4,y-4,o.w,o.h);ctx.fillStyle="#b8b6a6";ctx.fillRect(x,y,o.w,o.h);ctx.fillStyle="#8a928f";ctx.fillRect(x+6,y+6,o.w-12,o.h-12);ctx.fillStyle="#344c5d";for(let wx=x+14;wx<x+o.w-10;wx+=28){ctx.fillRect(wx,y+12,12,12);ctx.fillRect(wx,y+o.h-24,12,12)}ctx.fillStyle="#70573e";ctx.fillRect(x+o.w*.42,y+o.h-22,16,22);ctx.strokeStyle="#e5dfc9";ctx.strokeRect(x,y,o.w,o.h);}
+ else if(o.type==="building"){ctx.fillStyle="#3e4c56";ctx.fillRect(x-4,y-4,o.w,o.h);ctx.fillStyle="#b8b6a6";ctx.fillRect(x,y,o.w,o.h);ctx.fillStyle="#8a928f";ctx.fillRect(x+6,y+6,o.w-12,o.h-12);ctx.fillStyle="#344c5d";for(let wx=x+14;wx<x+o.w-10;wx+=28){ctx.fillRect(wx,y+12,12,12);ctx.fillRect(wx,y+o.h-24,12,12)}ctx.fillStyle="#70573e";ctx.fillRect(x+o.w*.42,y+o.h-22,16,22);ctx.fillStyle="#f6d779";ctx.fillRect(x+o.w*.5-7,y+o.h-3,14,5);ctx.strokeStyle="#e5dfc9";ctx.lineWidth=8;ctx.strokeRect(x+4,y+4,o.w-8,o.h-8);ctx.lineWidth=1;ctx.strokeStyle="#e5dfc9";ctx.strokeRect(x,y,o.w,o.h);}
  else if(o.type==="car"){ctx.save();ctx.translate(x,y);ctx.fillStyle="#34434d";ctx.fillRect(-o.w/2+3,-o.h/2+4,o.w,o.h);ctx.fillStyle=pickCarColor(o);ctx.fillRect(-o.w/2,-o.h/2,o.w,o.h);ctx.fillStyle="#8fd5e5";ctx.fillRect(-o.w*.23,-o.h*.35,o.w*.42,o.h*.7);ctx.fillStyle="#293640";ctx.fillRect(-o.w*.45,-o.h*.58,10,5);ctx.fillRect(o.w*.28,-o.h*.58,10,5);ctx.fillRect(-o.w*.45,o.h*.42,10,5);ctx.fillRect(o.w*.28,o.h*.42,10,5);ctx.restore();}
 }
 function pickCarColor(o){return ["#c44e46","#d4b64e","#4e7fc4","#677b75"][Math.floor((o.x+o.y)%4)]}
