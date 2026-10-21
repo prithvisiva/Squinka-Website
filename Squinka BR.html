@@ -482,8 +482,6 @@ function actorTarget(a){
  // Always fight back against the living actor that most recently damaged this Squinka.
  const attacker=a.lastAttacker;
  if(attacker&&attacker.alive&&elapsed-(a.lastAttackedAt??-999)<8)return attacker;
- // During the opening peace, do not start fights unless attacked first.
- if(elapsed<45)return null;
  const candidates=[player,...bots,...bosses];
  for(const c of candidates){
   if(c===a||!c.alive||(c===player&&!player.alive))continue;
@@ -517,23 +515,6 @@ function aiUpdate(a,dt){
  }
  a.think-=dt;a.fireCD=Math.max(0,a.fireCD-dt);
  if(a.reload>0){a.reload-=dt;if(a.reload<=0){let g=gunDefs[a.weapon],need=g.mag-a.ammo,take=Math.min(need,a.reserve);a.ammo+=take;a.reserve-=take;syncAmmo(a);}}
- // During the first 45 seconds, bots roam and keep their distance unless defending themselves.
- const defendingNow=!!(a.lastAttacker&&a.lastAttacker.alive&&elapsed-(a.lastAttackedAt??-999)<8);
- if(elapsed<45&&!defendingNow){
-  a.ai="wander";a.target=null;
-  let fx=0,fy=0;
-  for(const other of [player,...bots,...bosses]){
-   if(other===a||!other.alive)continue;
-   const dd=dist(a,other);
-   const minGap=other===player?420:300;
-   if(dd<minGap&&dd>0){fx+=(a.x-other.x)/dd*(minGap-dd);fy+=(a.y-other.y)/dd*(minGap-dd);}
-  }
-  if(Math.hypot(fx,fy)>0.5){
-   const fl=Math.hypot(fx,fy);a.angle=Math.atan2(fy,fx);
-   collisionMove(a,fx/fl*a.speed*dt*1.15,fy/fl*a.speed*dt*1.15);a.walk+=dt*8;
-   return;
-  }
- }
  if(a.think<=0){
   a.think=rand(.16,.30);
   const t=actorTarget(a);
